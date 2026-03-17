@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, tasks, taskAssignees } from '@/db';
 import { eq } from 'drizzle-orm';
+import { getSessionFromRequest } from '@/lib/session';
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = getSessionFromRequest(req);
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   try {
     const { id } = await params;
     const body = await req.json();
@@ -41,6 +44,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = getSessionFromRequest(_req);
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   try {
     const { id } = await params;
     db.delete(tasks).where(eq(tasks.id, id)).run();

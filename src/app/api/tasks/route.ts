@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, tasks, taskAssignees } from '@/db';
 import { eq } from 'drizzle-orm';
+import { getSessionFromRequest } from '@/lib/session';
 
 export async function POST(req: NextRequest) {
+  const session = getSessionFromRequest(req);
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   try {
     const body = await req.json();
     const id = `t_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;

@@ -57,12 +57,12 @@ export default function Sidebar() {
   return (
     <>
       {isOpen && (
-        <div className="fixed inset-0 z-20 bg-black/50 backdrop-blur-sm md:hidden" onClick={close} />
+        <div className="fixed inset-0 z-20 bg-black/30 backdrop-blur-sm md:hidden" onClick={close} />
       )}
 
       <aside className={`
         fixed left-0 top-0 h-screen w-56 flex flex-col z-30
-        bg-[#111118] border-r border-white/[0.06]
+        bg-white border-r border-slate-200/80
         transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0
       `}>
@@ -77,15 +77,15 @@ export default function Sidebar() {
               </svg>
             </div>
             <div className="min-w-0">
-              <p className="text-[13px] font-semibold text-white/90 truncate leading-tight">
+              <p className="text-[13px] font-semibold text-slate-800 truncate leading-tight">
                 {currentUser?.orgName ?? 'ProjectTrak'}
               </p>
-              <p className="text-[11px] text-white/25 truncate">Espace de travail</p>
+              <p className="text-[11px] text-slate-400 truncate">Espace de travail</p>
             </div>
           </div>
         </div>
 
-        <div className="mx-4 h-px bg-white/[0.06]" />
+        <div className="mx-4 h-px bg-slate-100" />
 
         {/* Nav */}
         <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto">
@@ -98,12 +98,12 @@ export default function Sidebar() {
                 className={`
                   flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] transition-all
                   ${active
-                    ? "bg-white/10 text-white font-medium"
-                    : "text-white/40 hover:bg-white/[0.06] hover:text-white/70"
+                    ? "bg-indigo-50 text-indigo-700 font-medium"
+                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
                   }
                 `}
               >
-                <span className={active ? "text-indigo-400" : "text-white/30"}>
+                <span className={active ? "text-indigo-500" : "text-slate-400"}>
                   {item.icon}
                 </span>
                 {item.label}
@@ -113,9 +113,9 @@ export default function Sidebar() {
         </nav>
 
         {/* User footer */}
-        <div className="mx-4 h-px bg-white/[0.06]" />
+        <div className="mx-4 h-px bg-slate-100" />
         <div className="p-3">
-          <div className="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-white/[0.06] transition-colors group">
+          <div className="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-slate-100 transition-colors group">
             <div
               className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0"
               style={{ backgroundColor: currentUser?.avatarColor ?? '#6366f1' }}
@@ -123,13 +123,13 @@ export default function Sidebar() {
               {initials}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-medium text-white/80 truncate leading-tight">{currentUser?.name ?? '…'}</p>
-              <p className="text-[11px] text-white/30 truncate">{currentUser?.email ?? ''}</p>
+              <p className="text-[13px] font-medium text-slate-700 truncate leading-tight">{currentUser?.name ?? '…'}</p>
+              <p className="text-[11px] text-slate-400 truncate">{currentUser?.email ?? ''}</p>
             </div>
             <button
               onClick={handleLogout}
               title="Se déconnecter"
-              className="p-1 rounded text-white/20 hover:text-rose-400 transition-colors flex-shrink-0"
+              className="p-1 rounded text-slate-300 hover:text-rose-500 transition-colors flex-shrink-0"
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />

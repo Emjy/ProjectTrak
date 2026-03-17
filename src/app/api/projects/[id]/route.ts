@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, projects, tasks, taskAssignees, projectTeams } from '@/db';
 import { eq } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
+import { getSessionFromRequest } from '@/lib/session';
 
 function mapTask(t: typeof tasks.$inferSelect, assigneeIds: string[]) {
   return { ...t, dueDate: t.dueDate ?? undefined, teamId: t.teamId ?? undefined, assigneeIds };
@@ -22,6 +23,8 @@ function getProjectWithTeams(id: string) {
 }
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = getSessionFromRequest(_req);
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   try {
     const { id } = await params;
     const result = getProjectWithTeams(id);
@@ -33,6 +36,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = getSessionFromRequest(req);
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (session.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   try {
     const { id } = await params;
     const body = await req.json();
@@ -61,6 +67,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = getSessionFromRequest(_req);
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (session.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   try {
     const { id } = await params;
     db.delete(projects).where(eq(projects.id, id)).run();

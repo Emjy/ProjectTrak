@@ -43,6 +43,6 @@ export async function POST(req: NextRequest) {
   }).run();
 
   const res = NextResponse.json({ ok: true, slug });
-  res.headers.append('Set-Cookie', makeSessionCookieHeader({ userId, orgId }));
+  res.headers.append('Set-Cookie', makeSessionCookieHeader({ userId, orgId, role: 'admin' }));
   return res;
 }

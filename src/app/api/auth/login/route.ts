@@ -22,6 +22,7 @@ export async function POST(req: NextRequest) {
   const sessionData: Parameters<typeof makeSessionCookieHeader>[0] = {
     userId: user.id,
     orgId: user.orgId!,
+    role: user.role as 'admin' | 'member',
     ...(user.mustChangePassword ? { mustChangePassword: true } : {}),
   };
   const res = NextResponse.json({ ok: true, mustChangePassword: user.mustChangePassword ?? false });

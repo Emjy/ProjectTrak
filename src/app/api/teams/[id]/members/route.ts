@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, teamMembers, users } from '@/db';
 import { eq, and } from 'drizzle-orm';
+import { getSessionFromRequest } from '@/lib/session';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = getSessionFromRequest(req);
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (session.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   try {
     const { id } = await params;
     const body = await req.json();
@@ -22,6 +26,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = getSessionFromRequest(req);
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (session.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   try {
     const { id } = await params;
     const { userId } = await req.json();

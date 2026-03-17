@@ -27,6 +27,6 @@ export async function POST(req: NextRequest) {
     .run();
 
   const res = NextResponse.json({ ok: true });
-  res.headers.append('Set-Cookie', makeSessionCookieHeader({ userId: user.id, orgId: user.orgId! }));
+  res.headers.append('Set-Cookie', makeSessionCookieHeader({ userId: user.id, orgId: user.orgId!, role: user.role as 'admin' | 'member' }));
   return res;
 }

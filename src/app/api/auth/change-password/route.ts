@@ -18,6 +18,6 @@ export async function POST(req: NextRequest) {
 
   // Reissue session without mustChangePassword flag
   const res = NextResponse.json({ ok: true });
-  res.headers.append('Set-Cookie', makeSessionCookieHeader({ userId: session.userId, orgId: session.orgId }));
+  res.headers.append('Set-Cookie', makeSessionCookieHeader({ userId: session.userId, orgId: session.orgId, role: session.role }));
   return res;
 }

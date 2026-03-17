@@ -4,6 +4,7 @@ import type { NextRequest } from 'next/server';
 export interface SessionData {
   userId: string;
   orgId: string;
+  role: 'admin' | 'member';
   mustChangePassword?: boolean;
 }
 

@@ -1,0 +1,13 @@
+services:
+  projecttrak:
+    image: ghcr.io/GITHUB_USERNAME/projecttrak:latest
+    container_name: projecttrak
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/data
+    environment:
+      - DB_PATH=/data/projecttrak.db
+      - SESSION_SECRET=${SESSION_SECRET}
+      - SETUP_KEY=${SETUP_KEY}

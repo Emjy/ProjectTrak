@@ -20,6 +20,9 @@ build/
 .env.test.local
 .env.production.local
 
+# Docker
+data/
+
 # OS
 .DS_Store
 Thumbs.db

@@ -4,7 +4,7 @@ import { organizations, projects, tasks, users, teams, teamMembers, taskAssignee
 import { eq } from 'drizzle-orm';
 import path from 'path';
 
-const DB_PATH = path.join(process.cwd(), 'projecttrak.db');
+const DB_PATH = process.env.DB_PATH ?? path.join(process.cwd(), 'projecttrak.db');
 const sqlite = new Database(DB_PATH);
 
 sqlite.pragma('journal_mode = WAL');

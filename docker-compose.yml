@@ -1,6 +1,6 @@
 services:
   projecttrak:
-    image: ghcr.io/emjy/projecttrak:latest
+    build: .
     container_name: projecttrak
     restart: unless-stopped
     ports:

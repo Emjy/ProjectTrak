@@ -10,7 +10,7 @@ RUN npm ci
 
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm run build
+RUN NEXT_PHASE_IGNORE_DB=true npm run build
 
 # Remove dev dependencies
 RUN npm prune --production

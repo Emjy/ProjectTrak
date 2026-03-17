@@ -1,0 +1,23 @@
+name: Deploy to NAS (No Package)
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH deploy
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          port: ${{ secrets.SSH_PORT }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /volume1/docker/projecttrak
+            # On récupère les derniers changements du code source
+            git pull origin main
+            # On demande au NAS de reconstruire l'app localement
+            docker compose up -d --build

@@ -12,6 +12,8 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 # Build sans toucher la DB (elle est en /data au runtime)
 RUN rm -f projecttrak.db projecttrak.db-shm projecttrak.db-wal && npm run build
+# Build sans toucher la DB (elle est en /data au runtime)
+RUN rm -f projecttrak.db projecttrak.db-shm projecttrak.db-wal && npm run build
 
 # Remove dev dependencies
 RUN npm prune --production

@@ -4,12 +4,10 @@ services:
     container_name: projecttrak
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "8083:3000"
     volumes:
       - /volume1/docker/projecttrak/data:/data
-    env_file:
-      - .env
     environment:
       - DB_PATH=/data/projecttrak.db
-      - SESSION_SECRET=${SESSION_SECRET}
-      - SETUP_KEY=${SETUP_KEY}
+      - SESSION_SECRET=knlbit8768fye7678gkhjevyfOeUeeYFUYeererECELYCEE
+      - SETUP_KEY=hemuOYEFOYFycycelycEUYCEO683R38YIDLZYCcYCgeclueUYDO3863D3OYCCejCdjcld

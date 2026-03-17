@@ -1,6 +1,6 @@
 services:
   projecttrak:
-    image: ghcr.io/GITHUB_USERNAME/projecttrak:latest
+    image: ghcr.io/emjy/projecttrak:latest
     container_name: projecttrak
     restart: unless-stopped
     ports:

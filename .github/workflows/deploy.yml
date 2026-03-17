@@ -41,9 +41,10 @@ jobs:
       - name: SSH deploy
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ secrets.NAS_HOST }}
-          username: ${{ secrets.NAS_USER }}
-          key: ${{ secrets.NAS_SSH_KEY }}
+          host: ${{ secrets.SSH_HOST }}
+          port: ${{ secrets.SSH_PORT }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /volume1/docker/projecttrak
             docker pull ghcr.io/${{ github.repository }}:latest

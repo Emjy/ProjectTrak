@@ -100,7 +100,14 @@ if (!taskCols.includes('description'))    sqlite.exec(`ALTER TABLE tasks ADD COL
 if (!taskCols.includes('team_id'))        sqlite.exec(`ALTER TABLE tasks ADD COLUMN team_id TEXT REFERENCES teams(id) ON DELETE SET NULL`);
 if (!userCols.includes('org_id'))         sqlite.exec(`ALTER TABLE users ADD COLUMN org_id TEXT REFERENCES organizations(id) ON DELETE CASCADE`);
 if (!userCols.includes('password_hash'))        sqlite.exec(`ALTER TABLE users ADD COLUMN password_hash TEXT`);
-if (!userCols.includes('must_change_password')) sqlite.exec(`ALTER TABLE users ADD COLUMN must_change_password INTEGER NOT NULL DEFAULT 0`);
+if (!userCols.includes('must_change_password')) {
+  try {
+    sqlite.exec(`ALTER TABLE users ADD COLUMN must_change_password INTEGER NOT NULL DEFAULT 0`);
+  } catch (e) {
+    if (!String(e).includes('duplicate column name')) throw e;
+    // Ignore duplicate column error
+  }
+}
 if (!userCols.includes('invite_token'))         sqlite.exec(`ALTER TABLE users ADD COLUMN invite_token TEXT`);
 if (!projectCols.includes('org_id'))      sqlite.exec(`ALTER TABLE projects ADD COLUMN org_id TEXT REFERENCES organizations(id) ON DELETE CASCADE`);
 if (!teamCols.includes('org_id'))         sqlite.exec(`ALTER TABLE teams ADD COLUMN org_id TEXT REFERENCES organizations(id) ON DELETE CASCADE`);

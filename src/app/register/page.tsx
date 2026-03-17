@@ -77,7 +77,7 @@ export default function RegisterPage() {
           <div>
             <label className="block text-xs font-medium text-slate-700 mb-1">Clé d&apos;accès plateforme</label>
             <PasswordInput value={setupKey} onChange={setSetupKey} required placeholder="Clé fournie par l'administrateur" />
-            <p className="text-xs text-slate-400 mt-1">Définie par la variable d&apos;env <code className="bg-slate-100 px-1 rounded">SETUP_KEY</code> (défaut : <code className="bg-slate-100 px-1 rounded">projecttrak-setup-2024</code>)</p>
+            {/* <p className="text-xs text-slate-400 mt-1">Définie par la variable d&apos;env <code className="bg-slate-100 px-1 rounded">SETUP_KEY</code> (défaut : <code className="bg-slate-100 px-1 rounded">projecttrak-setup-2024</code>)</p> */}
           </div>
           <hr className="border-slate-100" />
           <div>

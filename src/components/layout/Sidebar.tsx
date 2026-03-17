@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useMobileMenu } from "@/context/MobileMenuContext";
 import { useApp } from "@/context/AppContext";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import ChangePasswordModal from "@/components/ui/ChangePasswordModal";
 
 const navItems = [
   {
@@ -40,6 +41,7 @@ export default function Sidebar() {
   const router = useRouter();
   const { isOpen, close } = useMobileMenu();
   const { currentUser } = useApp();
+  const [pwOpen, setPwOpen] = useState(false);
 
   useEffect(() => { close(); }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -49,6 +51,7 @@ export default function Sidebar() {
     await fetch('/api/auth/logout', { method: 'POST' });
     window.location.href = '/login';
   };
+
 
   const initials = currentUser?.name
     ? currentUser.name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
@@ -127,6 +130,16 @@ export default function Sidebar() {
               <p className="text-[11px] text-slate-400 truncate">{currentUser?.email ?? ''}</p>
             </div>
             <button
+              onClick={() => setPwOpen(true)}
+              title="Paramètres"
+              className="p-1 rounded text-slate-300 hover:text-slate-600 transition-colors flex-shrink-0"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+              </svg>
+            </button>
+            <button
               onClick={handleLogout}
               title="Se déconnecter"
               className="p-1 rounded text-slate-300 hover:text-rose-500 transition-colors flex-shrink-0"
@@ -140,6 +153,7 @@ export default function Sidebar() {
           </div>
         </div>
       </aside>
+      <ChangePasswordModal isOpen={pwOpen} onClose={() => setPwOpen(false)} />
     </>
   );
 }

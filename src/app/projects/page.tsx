@@ -16,7 +16,8 @@ const statusFilters: { label: string; value: ProjectStatus | 'all' }[] = [
 ];
 
 export default function ProjectsPage() {
-  const { projects, loading, addProject, updateProject, deleteProject } = useApp();
+  const { projects, loading, addProject, updateProject, deleteProject, currentUser } = useApp();
+  const isAdmin = currentUser?.role === 'admin';
   const [filter, setFilter] = useState<ProjectStatus | 'all'>('all');
   const [search, setSearch] = useState('');
 
@@ -79,17 +80,19 @@ export default function ProjectsPage() {
             ))}
           </div>
 
-          <button
-            onClick={() => setCreateOpen(true)}
-            className="flex items-center gap-2 px-3 md:px-4 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 transition-colors shadow-sm flex-shrink-0"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            <span className="hidden sm:inline">Nouveau projet</span>
-            <span className="sm:hidden">Nouveau</span>
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => setCreateOpen(true)}
+              className="flex items-center gap-2 px-3 md:px-4 py-2.5 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 transition-colors shadow-sm flex-shrink-0"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              <span className="hidden sm:inline">Nouveau projet</span>
+              <span className="sm:hidden">Nouveau</span>
+            </button>
+          )}
         </div>
 
         {/* Search */}
@@ -126,8 +129,8 @@ export default function ProjectsPage() {
             <ProjectCard
               key={project.id}
               project={project}
-              onEdit={() => setEditTarget(project)}
-              onDelete={() => setDeleteTarget(project)}
+              onEdit={isAdmin ? () => setEditTarget(project) : undefined}
+              onDelete={isAdmin ? () => setDeleteTarget(project) : undefined}
             />
           ))}
         </div>
@@ -138,16 +141,18 @@ export default function ProjectsPage() {
           </svg>
           <p className="text-base font-medium text-slate-500">Aucun projet</p>
           <p className="text-sm mt-1 mb-5">Créez votre premier projet pour commencer.</p>
-          <button
-            onClick={() => setCreateOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            Nouveau projet
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => setCreateOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Nouveau projet
+            </button>
+          )}
         </div>
       ) : null}
 

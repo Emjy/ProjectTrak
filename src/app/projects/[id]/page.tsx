@@ -52,7 +52,8 @@ export default function ProjectDetailPage() {
   const router = useRouter();
   const id = typeof params.id === 'string' ? params.id : params.id?.[0] ?? '';
 
-  const { getProjectById, updateProject, deleteProject, addTask, updateTask, deleteTask, users, teams } = useApp();
+  const { getProjectById, updateProject, deleteProject, addTask, updateTask, deleteTask, users, teams, currentUser } = useApp();
+  const isAdmin = currentUser?.role === 'admin';
   const project = getProjectById(id);
 
   const [view, setView] = useState<'list' | 'kanban'>('list');
@@ -64,8 +65,7 @@ export default function ProjectDetailPage() {
   const [viewTask, setViewTask] = useState<Task | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // Use first admin user as "current user" for comments (no auth yet)
-  const currentUser = users.find(u => u.role === 'admin') ?? users[0];
+  const commentUser = users.find(u => u.id === currentUser?.id) ?? users[0];
 
   if (!project) notFound();
 
@@ -125,30 +125,32 @@ export default function ProjectDetailPage() {
           <span className="hidden sm:inline">Retour aux projets</span>
           <span className="sm:hidden">Retour</span>
         </Link>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setEditProjectOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
-              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
-            </svg>
-            <span className="hidden sm:inline">Modifier</span>
-          </button>
-          <button
-            onClick={() => setDeleteProjectOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
-          >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="3 6 5 6 21 6" />
-              <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
-              <path d="M10 11v6M14 11v6" />
-              <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" />
-            </svg>
-            <span className="hidden sm:inline">Supprimer</span>
-          </button>
-        </div>
+        {isAdmin && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setEditProjectOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+              <span className="hidden sm:inline">Modifier</span>
+            </button>
+            <button
+              onClick={() => setDeleteProjectOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
+                <path d="M10 11v6M14 11v6" />
+                <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" />
+              </svg>
+              <span className="hidden sm:inline">Supprimer</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Project Header */}
@@ -286,12 +288,12 @@ export default function ProjectDetailPage() {
       </div>
 
       {/* Task detail modal */}
-      {currentUser && (
+      {commentUser && (
         <TaskDetailModal
           task={viewTask}
           users={users}
           teams={teams}
-          currentUser={currentUser}
+          currentUser={commentUser}
           onClose={() => setViewTask(null)}
           onEdit={() => { setEditTask(viewTask); setViewTask(null); }}
           onDelete={() => { setDeleteTask(viewTask); setViewTask(null); }}

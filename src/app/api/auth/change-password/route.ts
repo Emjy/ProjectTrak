@@ -6,9 +6,19 @@ export async function POST(req: NextRequest) {
   const session = getSessionFromRequest(req);
   if (!session) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
 
-  const { password } = await req.json();
+  const { password, currentPassword } = await req.json();
   if (!password || password.length < 8) {
     return NextResponse.json({ error: 'Mot de passe trop court (8 caractères minimum)' }, { status: 400 });
+  }
+
+  // If not a forced change, verify current password
+  if (!session.mustChangePassword) {
+    if (!currentPassword) return NextResponse.json({ error: 'Mot de passe actuel requis' }, { status: 400 });
+    const user = db.select().from(users).where(eq(users.id, session.userId)).get();
+    const { verifyPassword } = await import('@/lib/session');
+    if (!user?.passwordHash || !verifyPassword(currentPassword, user.passwordHash)) {
+      return NextResponse.json({ error: 'Mot de passe actuel incorrect' }, { status: 400 });
+    }
   }
 
   db.update(users)

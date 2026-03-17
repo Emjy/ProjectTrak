@@ -24,6 +24,7 @@ export default function TeamPage() {
   const [memberTeamId, setMemberTeamId] = useState<string | null>(null);
   const [addingMember, setAddingMember] = useState<string | null>(null); // userId being added
   const [saving, setSaving] = useState(false);
+  const [inviteLink, setInviteLink] = useState<string | null>(null);
 
   // Always derive live team from context — never use stale snapshot
   const liveTeam = memberTeamId ? teams.find(t => t.id === memberTeamId) ?? null : null;
@@ -32,7 +33,15 @@ export default function TeamPage() {
 
   const handleAddUser = async (data: Omit<User, 'id' | 'createdAt'>) => {
     setSaving(true);
-    try { await addUser(data); setCreateUserOpen(false); } finally { setSaving(false); }
+    try {
+      const res = await fetch('/api/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      const user = await res.json();
+      if (user.inviteToken) {
+        const link = `${window.location.origin}/invite/${user.inviteToken}`;
+        setInviteLink(link);
+        setCreateUserOpen(false);
+      }
+    } finally { setSaving(false); }
   };
 
   const handleEditUser = async (data: Omit<User, 'id' | 'createdAt'>) => {
@@ -100,9 +109,20 @@ export default function TeamPage() {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-slate-800">{user.name}</p>
                 <p className="text-xs text-slate-400">{user.email}</p>
-                <span className={`inline-block mt-1 text-xs px-2 py-0.5 rounded-full font-medium ${user.role === 'admin' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'}`}>
-                  {user.role === 'admin' ? 'Admin' : 'Membre'}
-                </span>
+                <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${user.role === 'admin' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'}`}>
+                    {user.role === 'admin' ? 'Admin' : 'Membre'}
+                  </span>
+                  {user.activated === false ? (
+                    <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-50 text-amber-600 border border-amber-200">
+                      En attente
+                    </span>
+                  ) : (
+                    <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-emerald-50 text-emerald-600 border border-emerald-200">
+                      Activé
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button onClick={() => setEditUser(user)} className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors">
@@ -186,6 +206,31 @@ export default function TeamPage() {
           ))}
         </div>
       )}
+
+      {/* Invite link modal */}
+      <Modal isOpen={!!inviteLink} onClose={() => { setInviteLink(null); }} title="Compte créé — lien d'invitation">
+        <div className="space-y-4">
+          <p className="text-sm text-slate-600">Transmettez ce lien au membre. Il pourra l'utiliser pour activer son compte et définir son mot de passe.</p>
+          <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
+            <code className="flex-1 text-xs text-indigo-600 break-all">{inviteLink}</code>
+            <button
+              onClick={() => navigator.clipboard.writeText(inviteLink ?? '')}
+              className="flex-shrink-0 p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+              title="Copier"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+              </svg>
+            </button>
+          </div>
+          <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2 border border-amber-100">
+            Ce lien ne peut être utilisé qu'une seule fois. Il sera invalidé après activation.
+          </p>
+          <button onClick={() => setInviteLink(null)} className="w-full py-2 text-sm font-medium text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition-colors">
+            Fermer
+          </button>
+        </div>
+      </Modal>
 
       {/* User modals */}
       <Modal isOpen={createUserOpen} onClose={() => setCreateUserOpen(false)} title="Ajouter un membre">

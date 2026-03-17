@@ -33,9 +33,8 @@ function getPageSubtitle(pathname: string): string {
 
 export default function Header() {
   const pathname = usePathname();
-  const { users } = useApp();
+  const { currentUser } = useApp();
   const { toggle } = useMobileMenu();
-  const currentUser = users.find(u => u.role === 'admin') ?? users[0];
 
   return (
     <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-slate-100 px-4 md:px-8 py-3 md:py-4">
@@ -57,7 +56,7 @@ export default function Header() {
 
         {/* Right: notifications + avatar */}
         <div className="flex items-center gap-2 flex-shrink-0">
-          {currentUser && <NotificationBell userId={currentUser.id} />}
+          <NotificationBell />
           <div
             className="w-8 h-8 md:w-9 md:h-9 rounded-full flex items-center justify-center text-white text-sm font-bold cursor-pointer flex-shrink-0"
             style={{ backgroundColor: currentUser?.avatarColor ?? '#6366f1' }}

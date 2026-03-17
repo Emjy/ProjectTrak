@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
 
 interface NotificationBellProps {
-  userId: string;
+  userId?: string;
 }
 
 const LS_KEY = (uid: string) => `notif_last_seen_${uid}`;
@@ -31,20 +31,21 @@ function renderContent(content: string, users: User[]): string {
 }
 
 export default function NotificationBell({ userId }: NotificationBellProps) {
-  const { users } = useApp();
+  const { users, currentUser } = useApp();
+  const uid = userId ?? currentUser?.id ?? '';
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [lastSeen, setLastSeen] = useState<string>(() =>
-    typeof window !== 'undefined' ? (localStorage.getItem(LS_KEY(userId)) ?? '1970-01-01') : '1970-01-01'
+    typeof window !== 'undefined' ? (localStorage.getItem(LS_KEY(uid)) ?? '1970-01-01') : '1970-01-01'
   );
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch(`/api/notifications?userId=${userId}`);
+      const res = await fetch('/api/notifications');
       if (res.ok) setNotifications(await res.json());
     } catch { /* ignore */ }
-  }, [userId]);
+  }, []);
 
   useEffect(() => { load(); }, [load]);
 
@@ -67,7 +68,7 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
 
   const markAllRead = () => {
     const now = new Date().toISOString();
-    localStorage.setItem(LS_KEY(userId), now);
+    localStorage.setItem(LS_KEY(uid), now);
     setLastSeen(now);
   };
 

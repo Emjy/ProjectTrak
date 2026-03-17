@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
-import { projects, tasks, users, teams, teamMembers, taskAssignees, taskComments, projectTeams } from './schema';
+import { organizations, projects, tasks, users, teams, teamMembers, taskAssignees, taskComments, projectTeams } from './schema';
 import { eq } from 'drizzle-orm';
 import path from 'path';
 
@@ -14,6 +14,13 @@ export const db = drizzle(sqlite);
 
 // Create all tables
 sqlite.exec(`
+  CREATE TABLE IF NOT EXISTS organizations (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    created_at TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS projects (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
@@ -83,9 +90,33 @@ sqlite.exec(`
 `);
 
 // Migrations on existing DB
-const taskCols = (sqlite.prepare('PRAGMA table_info(tasks)').all() as { name: string }[]).map(c => c.name);
-if (!taskCols.includes('description')) sqlite.exec(`ALTER TABLE tasks ADD COLUMN description TEXT NOT NULL DEFAULT ''`);
-if (!taskCols.includes('team_id'))     sqlite.exec(`ALTER TABLE tasks ADD COLUMN team_id TEXT REFERENCES teams(id) ON DELETE SET NULL`);
+const taskCols    = (sqlite.prepare('PRAGMA table_info(tasks)').all()    as { name: string }[]).map(c => c.name);
+const userCols    = (sqlite.prepare('PRAGMA table_info(users)').all()    as { name: string }[]).map(c => c.name);
+const projectCols = (sqlite.prepare('PRAGMA table_info(projects)').all() as { name: string }[]).map(c => c.name);
+const teamCols    = (sqlite.prepare('PRAGMA table_info(teams)').all()    as { name: string }[]).map(c => c.name);
+
+if (!taskCols.includes('description'))    sqlite.exec(`ALTER TABLE tasks ADD COLUMN description TEXT NOT NULL DEFAULT ''`);
+if (!taskCols.includes('team_id'))        sqlite.exec(`ALTER TABLE tasks ADD COLUMN team_id TEXT REFERENCES teams(id) ON DELETE SET NULL`);
+if (!userCols.includes('org_id'))         sqlite.exec(`ALTER TABLE users ADD COLUMN org_id TEXT REFERENCES organizations(id) ON DELETE CASCADE`);
+if (!userCols.includes('password_hash'))        sqlite.exec(`ALTER TABLE users ADD COLUMN password_hash TEXT`);
+if (!userCols.includes('must_change_password')) sqlite.exec(`ALTER TABLE users ADD COLUMN must_change_password INTEGER NOT NULL DEFAULT 0`);
+if (!userCols.includes('invite_token'))         sqlite.exec(`ALTER TABLE users ADD COLUMN invite_token TEXT`);
+if (!projectCols.includes('org_id'))      sqlite.exec(`ALTER TABLE projects ADD COLUMN org_id TEXT REFERENCES organizations(id) ON DELETE CASCADE`);
+if (!teamCols.includes('org_id'))         sqlite.exec(`ALTER TABLE teams ADD COLUMN org_id TEXT REFERENCES organizations(id) ON DELETE CASCADE`);
+
+// Assign existing data to default org if not yet assigned
+const unassigned = (sqlite.prepare('SELECT COUNT(*) as c FROM projects WHERE org_id IS NULL').get() as { c: number }).c;
+if (unassigned > 0) {
+  const existingOrg = sqlite.prepare('SELECT id FROM organizations LIMIT 1').get() as { id: string } | undefined;
+  let defaultOrgId = existingOrg?.id;
+  if (!defaultOrgId) {
+    defaultOrgId = 'org_default';
+    sqlite.prepare('INSERT INTO organizations (id, name, slug, created_at) VALUES (?, ?, ?, ?)').run(defaultOrgId, 'Demo', 'demo', new Date().toISOString());
+  }
+  sqlite.prepare('UPDATE projects SET org_id = ? WHERE org_id IS NULL').run(defaultOrgId);
+  sqlite.prepare('UPDATE teams SET org_id = ? WHERE org_id IS NULL').run(defaultOrgId);
+  sqlite.prepare('UPDATE users SET org_id = ? WHERE org_id IS NULL').run(defaultOrgId);
+}
 
 // Seed data
 const projectCount = (sqlite.prepare('SELECT COUNT(*) as count FROM projects').get() as { count: number }).count;
@@ -133,20 +164,30 @@ if (projectCount === 0) {
     ['t9', 'p3', 'Sendgrid setup',        'Configurer Sendgrid pour les emails transactionnels',  'todo',        'medium', null,   '2026-03-15', ['u2']],
   ];
 
+  const seedOrgId = 'org_seed';
+  sqlite.prepare('INSERT INTO organizations (id, name, slug, created_at) VALUES (?, ?, ?, ?)').run(seedOrgId, 'Demo Company', 'demo', now);
+
+  // Simple hash for seed: sha256 of "password" with a fixed salt (not scrypt to avoid circular dep)
+  // In practice the login route uses scrypt; seed hash is set via the same format
+  const { scryptSync } = require('crypto') as typeof import('crypto');
+  const seedSalt = 'seedsalt00000000';
+  const seedHash = scryptSync('password', seedSalt, 32).toString('hex');
+  const alicePasswordHash = `${seedSalt}:${seedHash}`;
+
   const ins = {
-    user:    sqlite.prepare('INSERT INTO users (id, name, email, avatar_color, role, created_at) VALUES (?,?,?,?,?,?)'),
-    team:    sqlite.prepare('INSERT INTO teams (id, name, description, color, created_at) VALUES (?,?,?,?,?)'),
+    user:    sqlite.prepare('INSERT INTO users (id, name, email, password_hash, avatar_color, role, org_id, created_at) VALUES (?,?,?,?,?,?,?,?)'),
+    team:    sqlite.prepare('INSERT INTO teams (id, name, description, color, org_id, created_at) VALUES (?,?,?,?,?,?)'),
     member:  sqlite.prepare('INSERT INTO team_members (id, team_id, user_id, role) VALUES (?,?,?,?)'),
-    project:     sqlite.prepare('INSERT INTO projects (id, name, description, status, color, due_date, created_at) VALUES (?,?,?,?,?,?,?)'),
+    project:     sqlite.prepare('INSERT INTO projects (id, name, description, status, color, due_date, org_id, created_at) VALUES (?,?,?,?,?,?,?,?)'),
     projectTeam: sqlite.prepare('INSERT INTO project_teams (id, project_id, team_id) VALUES (?,?,?)'),
     task:        sqlite.prepare('INSERT INTO tasks (id, project_id, title, description, status, priority, team_id, due_date) VALUES (?,?,?,?,?,?,?,?)'),
     assignee:    sqlite.prepare('INSERT INTO task_assignees (id, task_id, user_id) VALUES (?,?,?)'),
   };
 
-  for (const u of seedUsers)       ins.user.run(u.id, u.name, u.email, u.color, u.role, now);
-  for (const t of seedTeams)       ins.team.run(t.id, t.name, t.description, t.color, now);
+  for (const u of seedUsers)       ins.user.run(u.id, u.name, u.email, u.id === 'u1' ? alicePasswordHash : null, u.color, u.role, seedOrgId, now);
+  for (const t of seedTeams)       ins.team.run(t.id, t.name, t.description, t.color, seedOrgId, now);
   for (const m of seedTeamMembers) ins.member.run(m.id, m.teamId, m.userId, m.role);
-  for (const p of seedProjects)    ins.project.run(p.id, p.name, p.description, p.status, p.color, p.dueDate, now);
+  for (const p of seedProjects)    ins.project.run(p.id, p.name, p.description, p.status, p.color, p.dueDate, seedOrgId, now);
   for (const pt of seedProjectTeams) ins.projectTeam.run(pt.id, pt.projectId, pt.teamId);
   for (const [tid, pid, title, desc, status, priority, teamId, dueDate, assigneeIds] of seedTasks) {
     ins.task.run(tid, pid, title, desc, status, priority, teamId, dueDate);
@@ -154,4 +195,4 @@ if (projectCount === 0) {
   }
 }
 
-export { projects, tasks, users, teams, teamMembers, taskAssignees, taskComments, projectTeams, eq };
+export { organizations, projects, tasks, users, teams, teamMembers, taskAssignees, taskComments, projectTeams, eq };

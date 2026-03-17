@@ -28,7 +28,6 @@ export default function UserForm({ initial, onSubmit, onCancel, loading }: UserF
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Preview */}
       <div className="flex justify-center py-2">
         <div className="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-bold" style={{ backgroundColor: avatarColor }}>
           {initials}
@@ -67,11 +66,17 @@ export default function UserForm({ initial, onSubmit, onCancel, loading }: UserF
         </div>
       </div>
 
+      {!initial?.id && (
+        <p className="text-xs text-slate-400 bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">
+          Un lien d'invitation sera généré. Le membre définira son mot de passe lui-même.
+        </p>
+      )}
+
       <div className="flex gap-3 justify-end pt-2 border-t border-gray-100">
         <button type="button" onClick={onCancel} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">Annuler</button>
         <button type="submit" disabled={loading || !name.trim() || !email.trim()}
           className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50 transition-colors">
-          {loading ? 'Enregistrement...' : initial?.id ? 'Mettre à jour' : 'Ajouter'}
+          {loading ? 'Enregistrement...' : initial?.id ? 'Mettre à jour' : 'Créer le compte'}
         </button>
       </div>
     </form>

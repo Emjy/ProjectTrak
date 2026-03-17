@@ -1,7 +1,15 @@
-import { sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+
+export const organizations = sqliteTable('organizations', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  slug: text('slug').notNull().unique(),
+  createdAt: text('created_at').notNull(),
+});
 
 export const projects = sqliteTable('projects', {
   id: text('id').primaryKey(),
+  orgId: text('org_id').references(() => organizations.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
   description: text('description').notNull().default(''),
   status: text('status', { enum: ['active', 'completed', 'on-hold'] }).notNull().default('active'),
@@ -12,8 +20,12 @@ export const projects = sqliteTable('projects', {
 
 export const users = sqliteTable('users', {
   id: text('id').primaryKey(),
+  orgId: text('org_id').references(() => organizations.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
   email: text('email').notNull(),
+  passwordHash: text('password_hash'),
+  inviteToken: text('invite_token'),
+  mustChangePassword: integer('must_change_password', { mode: 'boolean' }).notNull().default(false),
   avatarColor: text('avatar_color').notNull().default('#6366f1'),
   role: text('role', { enum: ['admin', 'member'] }).notNull().default('member'),
   createdAt: text('created_at').notNull(),
@@ -21,6 +33,7 @@ export const users = sqliteTable('users', {
 
 export const teams = sqliteTable('teams', {
   id: text('id').primaryKey(),
+  orgId: text('org_id').references(() => organizations.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
   description: text('description').notNull().default(''),
   color: text('color').notNull().default('#6366f1'),

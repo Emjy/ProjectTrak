@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, projects, tasks, taskAssignees, projectTeams } from '@/db';
 import { eq } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
+import { getSessionFromRequest } from '@/lib/session';
 
 function mapTask(t: typeof tasks.$inferSelect, assigneeIds: string[]) {
   return {
@@ -12,9 +13,11 @@ function mapTask(t: typeof tasks.$inferSelect, assigneeIds: string[]) {
   };
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const session = getSessionFromRequest(req);
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   try {
-    const allProjects = db.select().from(projects).all();
+    const allProjects = db.select().from(projects).where(eq(projects.orgId, session.orgId)).all();
     const allTasks = db.select().from(tasks).all();
     const allAssignees = db.select().from(taskAssignees).all();
     const allProjectTeams = db.select().from(projectTeams).all();
@@ -34,12 +37,15 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const session = getSessionFromRequest(req);
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   try {
     const body = await req.json();
     const id = randomUUID();
     const createdAt = new Date().toISOString();
     db.insert(projects).values({
       id,
+      orgId: session.orgId,
       name: body.name,
       description: body.description ?? '',
       status: body.status ?? 'active',

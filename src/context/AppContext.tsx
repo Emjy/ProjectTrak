@@ -9,6 +9,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [projects, setProjects] = useState<ProjectWithTasks[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   const refreshProjects = useCallback(async () => {
@@ -32,9 +33,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     } catch (e) { console.error(e); }
   }, []);
 
+  const refreshCurrentUser = useCallback(async () => {
+    try {
+      const res = await fetch('/api/auth/me');
+      if (res.ok) setCurrentUser(await res.json());
+    } catch (e) { console.error(e); }
+  }, []);
+
   useEffect(() => {
-    Promise.all([refreshProjects(), refreshUsers(), refreshTeams()]).finally(() => setLoading(false));
-  }, [refreshProjects, refreshUsers, refreshTeams]);
+    Promise.all([refreshProjects(), refreshUsers(), refreshTeams(), refreshCurrentUser()]).finally(() => setLoading(false));
+  }, [refreshProjects, refreshUsers, refreshTeams, refreshCurrentUser]);
 
   // — Projects —
   const addProject = useCallback(async (data: Omit<Project, 'id' | 'createdAt'>): Promise<ProjectWithTasks> => {
@@ -81,7 +89,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const getProjectById = useCallback((id: string) => projects.find(p => p.id === id), [projects]);
 
   // — Users —
-  const addUser = useCallback(async (data: Omit<User, 'id' | 'createdAt'>): Promise<User> => {
+  const addUser = useCallback(async (data: Omit<User, 'id' | 'createdAt'> & { password?: string }): Promise<User> => {
     const res = await fetch('/api/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
     const user: User = await res.json();
     setUsers(prev => [...prev, user]);
@@ -129,7 +137,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AppContext.Provider value={{ projects, users, teams, loading, refreshProjects, addProject, updateProject, deleteProject, addTask, updateTask, deleteTask, getProjectById, addUser, updateUser, deleteUser, addTeam, updateTeam, deleteTeam, addTeamMember, removeTeamMember }}>
+    <AppContext.Provider value={{ projects, users, teams, currentUser, loading, refreshProjects, addProject, updateProject, deleteProject, addTask, updateTask, deleteTask, getProjectById, addUser, updateUser, deleteUser, addTeam, updateTeam, deleteTeam, addTeamMember, removeTeamMember }}>
       {children}
     </AppContext.Provider>
   );

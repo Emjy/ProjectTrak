@@ -48,6 +48,7 @@ export interface User {
   avatarColor: string;
   role: UserRole;
   createdAt: string;
+  activated?: boolean;
 }
 
 export interface Team {
@@ -84,6 +85,7 @@ export interface AppContextType {
   projects: ProjectWithTasks[];
   users: User[];
   teams: Team[];
+  currentUser: User | null;
   loading: boolean;
   refreshProjects: () => Promise<void>;
   addProject: (data: Omit<Project, 'id' | 'createdAt'>) => Promise<ProjectWithTasks>;
@@ -93,7 +95,7 @@ export interface AppContextType {
   updateTask: (id: string, data: Partial<Omit<Task, 'id' | 'assigneeIds'>> & { assigneeIds?: string[] }) => Promise<void>;
   deleteTask: (id: string, projectId: string) => Promise<void>;
   getProjectById: (id: string) => ProjectWithTasks | undefined;
-  addUser: (data: Omit<User, 'id' | 'createdAt'>) => Promise<User>;
+  addUser: (data: Omit<User, 'id' | 'createdAt'> & { password?: string }) => Promise<User>;
   updateUser: (id: string, data: Partial<Omit<User, 'id' | 'createdAt'>>) => Promise<void>;
   deleteUser: (id: string) => Promise<void>;
   addTeam: (data: Omit<Team, 'id' | 'createdAt' | 'members'>) => Promise<Team>;

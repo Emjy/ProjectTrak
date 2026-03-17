@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import PasswordInput from '@/components/ui/PasswordInput';
 
 export default function RegisterPage() {
   const [setupKey, setSetupKey] = useState('');
@@ -75,11 +76,8 @@ export default function RegisterPage() {
           )}
           <div>
             <label className="block text-xs font-medium text-slate-700 mb-1">Clé d&apos;accès plateforme</label>
-            <input
-              type="password" required value={setupKey} onChange={e => setSetupKey(e.target.value)}
-              placeholder="••••••••"
-              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400"
-            />
+            <PasswordInput value={setupKey} onChange={setSetupKey} required placeholder="Clé fournie par l'administrateur" />
+            <p className="text-xs text-slate-400 mt-1">Définie par la variable d&apos;env <code className="bg-slate-100 px-1 rounded">SETUP_KEY</code> (défaut : <code className="bg-slate-100 px-1 rounded">projecttrak-setup-2024</code>)</p>
           </div>
           <hr className="border-slate-100" />
           <div>
@@ -108,11 +106,7 @@ export default function RegisterPage() {
           </div>
           <div>
             <label className="block text-xs font-medium text-slate-700 mb-1">Mot de passe admin</label>
-            <input
-              type="password" required value={password} onChange={e => setPassword(e.target.value)}
-              placeholder="8 caractères minimum"
-              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400"
-            />
+            <PasswordInput value={password} onChange={setPassword} required placeholder="8 caractères minimum" minLength={8} />
           </div>
           <button
             type="submit" disabled={loading}

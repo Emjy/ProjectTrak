@@ -27,7 +27,8 @@ export async function POST(req: NextRequest) {
   const orgId = `org_${randomUUID().replace(/-/g, '').slice(0, 12)}`;
   const userId = `u_${randomUUID().replace(/-/g, '').slice(0, 12)}`;
   const baseSlug = orgName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-  const slug = baseSlug + '-' + orgId.slice(-4);
+  const existing = db.select().from(organizations).where(eq(organizations.slug, baseSlug)).get();
+  const slug = existing ? baseSlug + '-' + orgId.slice(-4) : baseSlug;
 
   db.insert(organizations).values({ id: orgId, name: orgName, slug, createdAt: now }).run();
   db.insert(users).values({

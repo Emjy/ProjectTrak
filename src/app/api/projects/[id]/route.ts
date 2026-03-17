@@ -21,9 +21,10 @@ function getProjectWithTeams(id: string) {
   };
 }
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const result = getProjectWithTeams(params.id);
+    const { id } = await params;
+    const result = getProjectWithTeams(id);
     if (!result) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     return NextResponse.json(result);
   } catch {
@@ -31,8 +32,9 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   }
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const body = await req.json();
     db.update(projects).set({
       name: body.name,
@@ -40,17 +42,17 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       status: body.status,
       color: body.color,
       dueDate: body.dueDate ?? null,
-    }).where(eq(projects.id, params.id)).run();
+    }).where(eq(projects.id, id)).run();
 
     // Replace team assignments
     if (Array.isArray(body.teamIds)) {
-      db.delete(projectTeams).where(eq(projectTeams.projectId, params.id)).run();
+      db.delete(projectTeams).where(eq(projectTeams.projectId, id)).run();
       for (const teamId of body.teamIds as string[]) {
-        db.insert(projectTeams).values({ id: randomUUID(), projectId: params.id, teamId }).run();
+        db.insert(projectTeams).values({ id: randomUUID(), projectId: id, teamId }).run();
       }
     }
 
-    const result = getProjectWithTeams(params.id);
+    const result = getProjectWithTeams(id);
     if (!result) return NextResponse.json({ error: 'Not found' }, { status: 404 });
     return NextResponse.json(result);
   } catch {
@@ -58,9 +60,10 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    db.delete(projects).where(eq(projects.id, params.id)).run();
+    const { id } = await params;
+    db.delete(projects).where(eq(projects.id, id)).run();
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: 'Failed to delete project' }, { status: 500 });

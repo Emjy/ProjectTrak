@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import PasswordInput from '@/components/ui/PasswordInput';
 
 export default function InvitePage() {
   const { token } = useParams<{ token: string }>();
@@ -72,15 +73,11 @@ export default function InvitePage() {
           {error && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{error}</div>}
           <div>
             <label className="block text-xs font-medium text-slate-700 mb-1">Mot de passe</label>
-            <input type="password" required value={password} onChange={e => setPassword(e.target.value)}
-              placeholder="8 caractères minimum" minLength={8} autoFocus
-              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400" />
+            <PasswordInput value={password} onChange={setPassword} required placeholder="8 caractères minimum" minLength={8} autoFocus />
           </div>
           <div>
             <label className="block text-xs font-medium text-slate-700 mb-1">Confirmer</label>
-            <input type="password" required value={confirm} onChange={e => setConfirm(e.target.value)}
-              placeholder="••••••••"
-              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400" />
+            <PasswordInput value={confirm} onChange={setConfirm} required />
           </div>
           {password && confirm && password !== confirm && (
             <p className="text-xs text-rose-500">Les mots de passe ne correspondent pas</p>

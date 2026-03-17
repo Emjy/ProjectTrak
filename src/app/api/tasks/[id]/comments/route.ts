@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, taskComments, users, eq } from '@/db';
 import { randomUUID } from 'crypto';
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
-  const taskId = params.id;
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id: taskId } = await params;
   const rows = await db.select({
     id: taskComments.id,
     taskId: taskComments.taskId,
@@ -40,8 +40,8 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   return NextResponse.json(comments);
 }
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  const taskId = params.id;
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id: taskId } = await params;
   const body = await req.json();
   const { authorId, content } = body as { authorId: string; content: string };
 

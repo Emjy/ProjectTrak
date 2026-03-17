@@ -49,6 +49,8 @@ export interface User {
   role: UserRole;
   createdAt: string;
   activated?: boolean;
+  orgId?: string;
+  orgName?: string;
 }
 
 export interface Team {

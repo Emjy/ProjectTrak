@@ -35,7 +35,7 @@ export default function LoginPage() {
             </label>
             <input
               type="text" required value={slug} onChange={e => setSlug(e.target.value)}
-              placeholder="ex : hyssop-agency"
+              placeholder="ex : my-agency"
               autoFocus
               className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400"
             />

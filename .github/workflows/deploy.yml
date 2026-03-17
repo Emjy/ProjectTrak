@@ -16,6 +16,7 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            export PATH=$PATH:/usr/local/bin
             cd /volume1/docker/projecttrak
             # On récupère les derniers changements du code source
             git pull origin main

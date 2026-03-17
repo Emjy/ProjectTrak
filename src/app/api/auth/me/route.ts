@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, users, organizations, eq } from '@/db';
 import { getSessionFromRequest } from '@/lib/session';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   const session = getSessionFromRequest(req);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

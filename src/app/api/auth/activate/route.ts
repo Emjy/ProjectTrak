@@ -3,6 +3,8 @@ import { db, users } from '@/db';
 import { eq } from 'drizzle-orm';
 import { hashPassword, makeSessionCookieHeader } from '@/lib/session';
 
+export const dynamic = 'force-dynamic';
+
 // GET: verify token is valid, return user name
 export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get('token');

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, users, organizations, eq } from '@/db';
 import { verifyPassword, makeSessionCookieHeader } from '@/lib/session';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
   const { email, password, orgSlug } = await req.json();
   if (!email || !password) return NextResponse.json({ error: 'Champs manquants' }, { status: 400 });

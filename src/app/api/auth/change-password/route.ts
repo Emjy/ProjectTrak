@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, users, eq } from '@/db';
 import { getSessionFromRequest, hashPassword, makeSessionCookieHeader } from '@/lib/session';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
   const session = getSessionFromRequest(req);
   if (!session) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });

@@ -3,6 +3,8 @@ import { db, organizations, users, eq } from '@/db';
 import { hashPassword, makeSessionCookieHeader } from '@/lib/session';
 import { randomUUID } from 'crypto';
 
+export const dynamic = 'force-dynamic';
+
 const SETUP_KEY = process.env.SETUP_KEY ?? 'projecttrak-setup-2024';
 
 export async function POST(req: NextRequest) {

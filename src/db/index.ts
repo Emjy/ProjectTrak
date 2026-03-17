@@ -120,8 +120,8 @@ if (unassigned > 0) {
 }
 
 // Seed data
-const projectCount = (sqlite.prepare('SELECT COUNT(*) as count FROM projects').get() as { count: number }).count;
-if (projectCount === 0) {
+const seedOrgExists = sqlite.prepare('SELECT id FROM organizations WHERE slug = ?').get('demo') as { id: string } | undefined;
+if (!seedOrgExists) {
   const now = new Date().toISOString();
 
   const seedUsers = [
@@ -166,11 +166,7 @@ if (projectCount === 0) {
   ];
 
   const seedOrgId = 'org_seed';
-  // Check if demo org already exists before creating
-  const existingDemoOrg = sqlite.prepare('SELECT id FROM organizations WHERE slug = ?').get('demo') as { id: string } | undefined;
-  if (!existingDemoOrg) {
-    sqlite.prepare('INSERT INTO organizations (id, name, slug, created_at) VALUES (?, ?, ?, ?)').run(seedOrgId, 'Demo Company', 'demo', now);
-  }
+  sqlite.prepare('INSERT INTO organizations (id, name, slug, created_at) VALUES (?, ?, ?, ?)').run(seedOrgId, 'Demo Company', 'demo', now);
 
   // Simple hash for seed: sha256 of "password" with a fixed salt (not scrypt to avoid circular dep)
   // In practice the login route uses scrypt; seed hash is set via the same format

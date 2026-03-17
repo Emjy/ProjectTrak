@@ -20,5 +20,7 @@ jobs:
             cd /volume1/docker/projecttrak
             # On récupère les derniers changements du code source
             git pull origin main
+            # On arrête les containers avant de rebuild
+            docker compose down
             # On demande au NAS de reconstruire l'app localement
             docker compose up -d --build

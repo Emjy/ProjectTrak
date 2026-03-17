@@ -1,41 +1,11 @@
-name: Build & Deploy
+name: Deploy to NAS (No Package)
 
 on:
   push:
     branches: [main]
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
-
 jobs:
-  build:
-    name: Build & Push Docker image
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ghcr.io/${{ github.repository }}:latest
-
   deploy:
-    name: Deploy to NAS
-    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: SSH deploy
@@ -47,6 +17,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /volume1/docker/projecttrak
-            docker pull ghcr.io/${{ github.repository }}:latest
-            docker compose up -d
-            docker image prune -f
+            # On récupère les derniers changements du code source
+            git pull origin main
+            # On demande au NAS de reconstruire l'app localement
+            docker compose up -d --build

@@ -28,34 +28,14 @@ export default function TaskForm({ projectId, initial, onSubmit, onCancel, loadi
     ? users.filter(u => projectMemberIds.has(u.id))
     : users;
 
+  const eligibleUsers = baseEligibleUsers;
+
   const [title, setTitle]             = useState(initial?.title ?? '');
   const [description, setDescription] = useState(initial?.description ?? '');
   const [status, setStatus]           = useState<TaskStatus>(initial?.status ?? 'todo');
   const [priority, setPriority]       = useState<TaskPriority>(initial?.priority ?? 'medium');
   const [assigneeIds, setAssigneeIds] = useState<string[]>(initial?.assigneeIds ?? []);
-  const [teamId, setTeamId]           = useState(initial?.teamId ?? '');
   const [dueDate, setDueDate]         = useState(initial?.dueDate ?? '');
-
-  // If a task team is selected, further filter to that team's members only
-  const selectedTeam = teamId ? teams.find(t => t.id === teamId) : null;
-  const eligibleUsers = selectedTeam
-    ? (selectedTeam.members ?? []).map(m => users.find(u => u.id === m.userId)).filter(Boolean) as typeof users
-    : baseEligibleUsers;
-
-  // Only show project teams in the team dropdown
-  const availableTeams = projectTeams.length > 0 ? projectTeams : teams;
-
-  const handleTeamChange = (newTeamId: string) => {
-    setTeamId(newTeamId);
-    if (newTeamId) {
-      const team = teams.find(t => t.id === newTeamId);
-      const memberIds = new Set((team?.members ?? []).map(m => m.userId));
-      setAssigneeIds(prev => prev.filter(id => memberIds.has(id)));
-    } else {
-      // Reset to base eligible users when team is cleared
-      setAssigneeIds(prev => prev.filter(id => baseEligibleUsers.some(u => u.id === id)));
-    }
-  };
 
   const toggleAssignee = (uid: string) => {
     setAssigneeIds(prev =>
@@ -73,7 +53,6 @@ export default function TaskForm({ projectId, initial, onSubmit, onCancel, loadi
       status,
       priority,
       assigneeIds,
-      teamId: teamId || undefined,
       dueDate: dueDate || undefined,
     });
   };
@@ -153,33 +132,20 @@ export default function TaskForm({ projectId, initial, onSubmit, onCancel, loadi
               </button>
             );
           })}
-          {eligibleUsers.length === 0 && (
+              {eligibleUsers.length === 0 && (
             <p className="text-xs text-slate-400">
-              {teamId
-                ? 'Aucun membre dans cette équipe.'
-                : projectTeams.length > 0
-                  ? 'Aucun membre dans les équipes de ce projet.'
-                  : 'Assignez des équipes au projet pour filtrer les membres.'}
+              {projectTeams.length > 0
+                ? 'Aucun membre dans les équipes de ce projet.'
+                : 'Assignez des équipes au projet pour filtrer les membres.'}
             </p>
           )}
         </div>
       </div>
 
-      {/* Team assignment */}
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Équipe</label>
-          <select value={teamId} onChange={e => handleTeamChange(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <option value="">— Aucune —</option>
-            {availableTeams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Échéance</label>
-          <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-        </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Échéance</label>
+        <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)}
+          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
       </div>
 
       <div className="flex gap-3 justify-end pt-2 border-t border-gray-100">

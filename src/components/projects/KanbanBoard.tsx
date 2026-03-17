@@ -24,7 +24,7 @@ function DroppableColumn({ column, tasks, onView, onEdit, onDelete }: {
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
 }) {
-  const { users, teams } = useApp();
+  const { users } = useApp();
   const { setNodeRef, isOver } = useDroppable({ id: column.id });
 
   return (
@@ -46,7 +46,6 @@ function DroppableColumn({ column, tasks, onView, onEdit, onDelete }: {
               key={task.id}
               task={task}
               users={users}
-              teams={teams}
               onView={() => onView(task)}
               onEdit={() => onEdit(task)}
               onDelete={() => onDelete(task)}
@@ -73,7 +72,7 @@ interface KanbanBoardProps {
 }
 
 export default function KanbanBoard({ tasks, onViewTask, onEditTask, onDeleteTask }: KanbanBoardProps) {
-  const { updateTask, users, teams } = useApp();
+  const { updateTask, users } = useApp();
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
   const sensors = useSensors(
@@ -108,8 +107,9 @@ export default function KanbanBoard({ tasks, onViewTask, onEditTask, onDeleteTas
 
   return (
     <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      {/* Fixed-height grid that doesn't overflow the page */}
-      <div className="grid grid-cols-3 gap-4" style={{ height: 'calc(100vh - 320px)', minHeight: '400px' }}>
+      {/* Horizontally scrollable on mobile, fixed-height grid on desktop */}
+      <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 pb-2">
+      <div className="grid grid-cols-3 gap-3 md:gap-4 min-w-[680px]" style={{ height: 'calc(100vh - 320px)', minHeight: '400px' }}>
         {COLUMNS.map(col => (
           <DroppableColumn
             key={col.id}
@@ -121,11 +121,12 @@ export default function KanbanBoard({ tasks, onViewTask, onEditTask, onDeleteTas
           />
         ))}
       </div>
+      </div>
 
       <DragOverlay>
         {activeTask && (
           <div className="rotate-2 scale-105">
-            <KanbanCard task={activeTask} users={users} teams={teams} onView={() => {}} onEdit={() => {}} onDelete={() => {}} />
+            <KanbanCard task={activeTask} users={users} onView={() => {}} onEdit={() => {}} onDelete={() => {}} />
           </div>
         )}
       </DragOverlay>

@@ -39,9 +39,8 @@ function formatDate(dateStr: string): string {
 }
 
 export default function TaskItem({ task, onView, onEdit, onDelete }: TaskItemProps) {
-  const { updateTask, users, teams } = useApp();
+  const { updateTask, users } = useApp();
   const assignees = (task.assigneeIds ?? []).map(id => users.find(u => u.id === id)).filter(Boolean) as typeof users;
-  const team = task.teamId ? teams.find(t => t.id === task.teamId) : null;
 
   const handleToggle = () => {
     updateTask(task.id, { status: statusCycle[task.status] });
@@ -68,18 +67,12 @@ export default function TaskItem({ task, onView, onEdit, onDelete }: TaskItemPro
         )}
       </div>
 
-      <div className="flex items-center gap-2 flex-shrink-0">
+      <div className="flex items-center gap-1.5 md:gap-2 flex-shrink-0">
         <Badge variant={task.priority} />
-        <Badge variant={task.status} />
+        <Badge variant={task.status} className="hidden sm:flex" />
         {task.dueDate && (
           <span className={`text-xs ${isOverdue ? 'text-rose-500 font-medium' : 'text-slate-400'}`}>
             {formatDate(task.dueDate)}
-          </span>
-        )}
-        {team && (
-          <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium text-white flex-shrink-0"
-            style={{ backgroundColor: team.color + 'cc' }}>
-            {team.name}
           </span>
         )}
         {assignees.length > 0 && (

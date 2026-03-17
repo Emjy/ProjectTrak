@@ -2,13 +2,15 @@
 
 import { usePathname } from "next/navigation";
 import { useApp } from "@/context/AppContext";
+import { useMobileMenu } from "@/context/MobileMenuContext";
 import NotificationBell from "@/components/ui/NotificationBell";
 
-function SearchIcon() {
+function HamburgerIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="11" cy="11" r="8" />
-      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <line x1="3" y1="12" x2="21" y2="12" />
+      <line x1="3" y1="18" x2="21" y2="18" />
     </svg>
   );
 }
@@ -32,33 +34,32 @@ function getPageSubtitle(pathname: string): string {
 export default function Header() {
   const pathname = usePathname();
   const { users } = useApp();
+  const { toggle } = useMobileMenu();
   const currentUser = users.find(u => u.role === 'admin') ?? users[0];
 
   return (
-    <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-slate-100 px-8 py-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">{getPageTitle(pathname)}</h1>
-          <p className="text-sm text-slate-500 mt-0.5">{getPageSubtitle(pathname)}</p>
+    <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-slate-100 px-4 md:px-8 py-3 md:py-4">
+      <div className="flex items-center justify-between gap-3">
+        {/* Left: hamburger (mobile) + title */}
+        <div className="flex items-center gap-3 min-w-0">
+          <button
+            onClick={toggle}
+            className="md:hidden flex-shrink-0 p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            aria-label="Ouvrir le menu"
+          >
+            <HamburgerIcon />
+          </button>
+          <div className="min-w-0">
+            <h1 className="text-base md:text-xl font-bold text-slate-900 truncate">{getPageTitle(pathname)}</h1>
+            <p className="text-xs md:text-sm text-slate-500 mt-0 md:mt-0.5 hidden sm:block">{getPageSubtitle(pathname)}</p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Search */}
-          <div className="flex items-center gap-2 bg-slate-100 rounded-lg px-3 py-2 text-slate-400">
-            <SearchIcon />
-            <input
-              type="text"
-              placeholder="Rechercher..."
-              className="bg-transparent text-sm text-slate-700 placeholder:text-slate-400 outline-none w-36"
-            />
-          </div>
-
-          {/* Notifications */}
+        {/* Right: notifications + avatar */}
+        <div className="flex items-center gap-2 flex-shrink-0">
           {currentUser && <NotificationBell userId={currentUser.id} />}
-
-          {/* Avatar */}
           <div
-            className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold cursor-pointer"
+            className="w-8 h-8 md:w-9 md:h-9 rounded-full flex items-center justify-center text-white text-sm font-bold cursor-pointer flex-shrink-0"
             style={{ backgroundColor: currentUser?.avatarColor ?? '#6366f1' }}
             title={currentUser?.name}
           >

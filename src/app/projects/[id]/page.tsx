@@ -117,12 +117,13 @@ export default function ProjectDetailPage() {
   };
 
   return (
-    <div className="space-y-7 max-w-4xl mx-auto">
+    <div className="space-y-5 md:space-y-7 max-w-4xl mx-auto">
       {/* Back + actions */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <Link href="/projects" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 transition-colors">
           <BackIcon />
-          Retour aux projets
+          <span className="hidden sm:inline">Retour aux projets</span>
+          <span className="sm:hidden">Retour</span>
         </Link>
         <div className="flex items-center gap-2">
           <button
@@ -133,7 +134,7 @@ export default function ProjectDetailPage() {
               <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
               <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
             </svg>
-            Modifier
+            <span className="hidden sm:inline">Modifier</span>
           </button>
           <button
             onClick={() => setDeleteProjectOpen(true)}
@@ -145,15 +146,15 @@ export default function ProjectDetailPage() {
               <path d="M10 11v6M14 11v6" />
               <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2" />
             </svg>
-            Supprimer
+            <span className="hidden sm:inline">Supprimer</span>
           </button>
         </div>
       </div>
 
       {/* Project Header */}
-      <Card className="p-6">
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-xl flex-shrink-0" style={{ backgroundColor: project.color + '22', border: `2px solid ${project.color}44` }} />
+      <Card className="p-4 md:p-6">
+        <div className="flex items-start gap-3 md:gap-4">
+          <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex-shrink-0" style={{ backgroundColor: project.color + '22', border: `2px solid ${project.color}44` }} />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 flex-wrap">
               <h1 className="text-xl font-bold text-slate-900">{project.name}</h1>
@@ -262,7 +263,7 @@ export default function ProjectDetailPage() {
             onDeleteTask={(task) => setDeleteTask(task)}
           />
         ) : (
-          <div className="space-y-6 overflow-y-auto pr-1" style={{ maxHeight: 'calc(100vh - 320px)' }}>
+          <div className="space-y-6 overflow-y-auto pr-1" style={{ maxHeight: 'calc(100svh - 280px)' }}>
             {taskStatusGroups.map((group) => {
               const groupTasks = tasks.filter((t) => t.status === group.value);
               if (groupTasks.length === 0) return null;

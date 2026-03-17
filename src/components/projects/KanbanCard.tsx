@@ -2,14 +2,13 @@
 
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Task, User, Team } from '@/types';
+import { Task, User } from '@/types';
 import Badge from '@/components/ui/Badge';
 import Avatar from '@/components/ui/Avatar';
 
 interface KanbanCardProps {
   task: Task;
   users: User[];
-  teams: Team[];
   onView: () => void;
   onEdit: () => void;
   onDelete: () => void;
@@ -19,13 +18,12 @@ function formatDate(d: string) {
   return new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 }
 
-export default function KanbanCard({ task, users, teams, onView, onEdit, onDelete }: KanbanCardProps) {
+export default function KanbanCard({ task, users, onView, onEdit, onDelete }: KanbanCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id });
 
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.4 : 1 };
 
   const assignees = (task.assigneeIds ?? []).map(id => users.find(u => u.id === id)).filter(Boolean) as User[];
-  const team = task.teamId ? teams.find(t => t.id === task.teamId) : null;
   const isOverdue = task.status !== 'done' && task.dueDate && new Date(task.dueDate) < new Date();
 
   return (
@@ -71,20 +69,6 @@ export default function KanbanCard({ task, users, teams, onView, onEdit, onDelet
           </button>
         </div>
       </div>
-
-      {/* Team badge */}
-      {team && (
-        <div className="mb-2">
-          <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium text-white"
-            style={{ backgroundColor: team.color + 'cc' }}>
-            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" />
-              <path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" />
-            </svg>
-            {team.name}
-          </span>
-        </div>
-      )}
 
       {/* Footer */}
       <div className="flex items-center justify-between gap-2 mt-1">

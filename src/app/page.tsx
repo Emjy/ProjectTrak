@@ -5,6 +5,7 @@ import { useApp } from '@/context/AppContext';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import ProgressBar from '@/components/ui/ProgressBar';
+import TimeMetricsCard from '@/components/dashboard/TimeMetricsCard';
 
 function StatCard({ label, value, icon, color, sublabel }: { label: string; value: number; icon: React.ReactNode; color: string; sublabel?: string }) {
   return (
@@ -143,6 +144,23 @@ export default function DashboardPage() {
           </Card>
         )}
       </div>
+
+      {/* Time Metrics */}
+      {projects.some((p) => p.estimatedTime) && (
+        <div>
+          <div className="mb-5">
+            <h2 className="text-base font-semibold text-slate-900">Métriques de temps</h2>
+            <p className="text-sm text-slate-500 mt-0.5">Estimé vs réel par projet</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {projects
+              .filter((p) => p.estimatedTime)
+              .map((project) => (
+                <TimeMetricsCard key={project.id} project={project} />
+              ))}
+          </div>
+        </div>
+      )}
 
       {/* Task summary */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

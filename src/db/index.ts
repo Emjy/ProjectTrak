@@ -112,6 +112,14 @@ if (!userCols.includes('invite_token'))         sqlite.exec(`ALTER TABLE users A
 if (!projectCols.includes('org_id'))      sqlite.exec(`ALTER TABLE projects ADD COLUMN org_id TEXT REFERENCES organizations(id) ON DELETE CASCADE`);
 if (!teamCols.includes('org_id'))         sqlite.exec(`ALTER TABLE teams ADD COLUMN org_id TEXT REFERENCES organizations(id) ON DELETE CASCADE`);
 
+// Time tracking migrations
+if (!taskCols.includes('estimated_time'))    sqlite.exec(`ALTER TABLE tasks ADD COLUMN estimated_time INTEGER`);
+if (!taskCols.includes('estimated_time_unit')) sqlite.exec(`ALTER TABLE tasks ADD COLUMN estimated_time_unit TEXT`);
+if (!taskCols.includes('actual_time'))       sqlite.exec(`ALTER TABLE tasks ADD COLUMN actual_time INTEGER`);
+if (!taskCols.includes('actual_time_unit'))  sqlite.exec(`ALTER TABLE tasks ADD COLUMN actual_time_unit TEXT`);
+if (!projectCols.includes('estimated_time'))    sqlite.exec(`ALTER TABLE projects ADD COLUMN estimated_time INTEGER`);
+if (!projectCols.includes('estimated_time_unit')) sqlite.exec(`ALTER TABLE projects ADD COLUMN estimated_time_unit TEXT`);
+
 // Assign existing data to default org if not yet assigned
 const unassigned = (sqlite.prepare('SELECT COUNT(*) as c FROM projects WHERE org_id IS NULL').get() as { c: number }).c;
 if (unassigned > 0) {

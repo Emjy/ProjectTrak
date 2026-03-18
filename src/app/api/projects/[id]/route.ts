@@ -4,8 +4,17 @@ import { eq } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
 import { getSessionFromRequest } from '@/lib/session';
 
+export const dynamic = 'force-dynamic';
+
 function mapTask(t: typeof tasks.$inferSelect, assigneeIds: string[]) {
-  return { ...t, dueDate: t.dueDate ?? undefined, teamId: t.teamId ?? undefined, assigneeIds };
+  return {
+    ...t,
+    dueDate: t.dueDate ?? undefined,
+    teamId: t.teamId ?? undefined,
+    estimatedTimeUnit: t.estimatedTimeUnit ?? undefined,
+    actualTimeUnit: t.actualTimeUnit ?? undefined,
+    assigneeIds
+  };
 }
 
 function getProjectWithTeams(id: string) {
@@ -17,6 +26,7 @@ function getProjectWithTeams(id: string) {
   return {
     ...project,
     dueDate: project.dueDate ?? undefined,
+    estimatedTimeUnit: project.estimatedTimeUnit ?? undefined,
     teamIds,
     tasks: projectTasks.map(t => mapTask(t, allAssignees.filter(a => a.taskId === t.id).map(a => a.userId))),
   };
@@ -48,6 +58,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       status: body.status,
       color: body.color,
       dueDate: body.dueDate ?? null,
+      estimatedTime: body.estimatedTime ?? null,
+      estimatedTimeUnit: body.estimatedTimeUnit ?? null,
     }).where(eq(projects.id, id)).run();
 
     // Replace team assignments

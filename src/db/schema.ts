@@ -15,6 +15,8 @@ export const projects = sqliteTable('projects', {
   status: text('status', { enum: ['active', 'completed', 'on-hold'] }).notNull().default('active'),
   color: text('color').notNull().default('#6366f1'),
   dueDate: text('due_date'),
+  estimatedTime: integer('estimated_time'),
+  estimatedTimeUnit: text('estimated_time_unit', { enum: ['minutes', 'hours', 'days', 'weeks', 'years'] }),
   createdAt: text('created_at').notNull(),
 });
 
@@ -56,6 +58,10 @@ export const tasks = sqliteTable('tasks', {
   priority: text('priority', { enum: ['low', 'medium', 'high'] }).notNull().default('medium'),
   teamId: text('team_id').references(() => teams.id, { onDelete: 'set null' }),
   dueDate: text('due_date'),
+  estimatedTime: integer('estimated_time'),
+  estimatedTimeUnit: text('estimated_time_unit', { enum: ['minutes', 'hours', 'days', 'weeks', 'years'] }),
+  actualTime: integer('actual_time'),
+  actualTimeUnit: text('actual_time_unit', { enum: ['minutes', 'hours', 'days', 'weeks', 'years'] }),
 });
 
 export const projectTeams = sqliteTable('project_teams', {

@@ -3,6 +3,7 @@ export type TaskStatus = "todo" | "in-progress" | "done";
 export type TaskPriority = "low" | "medium" | "high";
 export type UserRole = "admin" | "member";
 export type TeamMemberRole = "owner" | "member";
+export type TimeUnit = "minutes" | "hours" | "days" | "weeks" | "years";
 
 export interface Project {
   id: string;
@@ -11,6 +12,8 @@ export interface Project {
   status: ProjectStatus;
   color: string;
   dueDate?: string;
+  estimatedTime?: number;
+  estimatedTimeUnit?: TimeUnit;
   createdAt: string;
   teamIds: string[];
 }
@@ -39,6 +42,10 @@ export interface Task {
   assigneeIds: string[];   // multiple members
   teamId?: string;         // optional team assignment
   dueDate?: string;
+  estimatedTime?: number;
+  estimatedTimeUnit?: TimeUnit;
+  actualTime?: number;
+  actualTimeUnit?: TimeUnit;
 }
 
 export interface User {

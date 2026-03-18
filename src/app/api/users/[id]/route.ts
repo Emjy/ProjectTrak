@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, users } from '@/db';
 import { eq } from 'drizzle-orm';
+
+export const dynamic = 'force-dynamic';
 import { getSessionFromRequest } from '@/lib/session';
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

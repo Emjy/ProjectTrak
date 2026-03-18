@@ -3,6 +3,8 @@ import { db, tasks, taskAssignees } from '@/db';
 import { eq } from 'drizzle-orm';
 import { getSessionFromRequest } from '@/lib/session';
 
+export const dynamic = 'force-dynamic';
+
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = getSessionFromRequest(req);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -17,6 +19,10 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       priority: body.priority,
       teamId: body.teamId ?? null,
       dueDate: body.dueDate ?? null,
+      estimatedTime: body.estimatedTime ?? null,
+      estimatedTimeUnit: body.estimatedTimeUnit ?? null,
+      actualTime: body.actualTime ?? null,
+      actualTimeUnit: body.actualTimeUnit ?? null,
     }).where(eq(tasks.id, id)).run();
 
     // Replace assignees

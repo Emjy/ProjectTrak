@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Project, ProjectStatus } from '@/types';
+import { Project, ProjectStatus, TimeUnit } from '@/types';
 import { useApp } from '@/context/AppContext';
 
 const COLORS = [
@@ -23,6 +23,8 @@ export default function ProjectForm({ initial, onSubmit, onCancel, loading }: Pr
   const [color, setColor]           = useState(initial?.color ?? '#6366f1');
   const [dueDate, setDueDate]       = useState(initial?.dueDate ?? '');
   const [teamIds, setTeamIds]       = useState<string[]>(initial?.teamIds ?? []);
+  const [estimatedTime, setEstimatedTime] = useState(initial?.estimatedTime?.toString() ?? '');
+  const [estimatedTimeUnit, setEstimatedTimeUnit] = useState<TimeUnit>(initial?.estimatedTimeUnit ?? 'days');
 
   const toggleTeam = (id: string) =>
     setTeamIds(prev => prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id]);
@@ -30,7 +32,16 @@ export default function ProjectForm({ initial, onSubmit, onCancel, loading }: Pr
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
-    onSubmit({ name: name.trim(), description: description.trim(), status, color, dueDate: dueDate || undefined, teamIds });
+    onSubmit({
+      name: name.trim(),
+      description: description.trim(),
+      status,
+      color,
+      dueDate: dueDate || undefined,
+      estimatedTime: estimatedTime ? parseInt(estimatedTime) : undefined,
+      estimatedTimeUnit: estimatedTime ? estimatedTimeUnit : undefined,
+      teamIds
+    });
   };
 
   return (
@@ -119,6 +130,26 @@ export default function ProjectForm({ initial, onSubmit, onCancel, loading }: Pr
             onChange={(e) => setDueDate(e.target.value)}
             className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-3">
+        <div className="col-span-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Temps estimé</label>
+          <input type="number" value={estimatedTime} onChange={e => setEstimatedTime(e.target.value)}
+            min="0" placeholder="Ex: 2"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+        <div className="col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Unité</label>
+          <select value={estimatedTimeUnit} onChange={e => setEstimatedTimeUnit(e.target.value as TimeUnit)} disabled={!estimatedTime}
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed">
+            <option value="minutes">Minutes</option>
+            <option value="hours">Heures</option>
+            <option value="days">Jours</option>
+            <option value="weeks">Semaines</option>
+            <option value="years">Années</option>
+          </select>
         </div>
       </div>
 

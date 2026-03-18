@@ -5,6 +5,7 @@ import Modal from '@/components/ui/Modal';
 import Badge from '@/components/ui/Badge';
 import Avatar from '@/components/ui/Avatar';
 import TaskComments from './TaskComments';
+import { formatTimeWithUnit, calculateRatio, formatRatio, getStatusColor, getStatusLabel } from '@/lib/time';
 
 interface TaskDetailModalProps {
   task: Task | null;
@@ -98,6 +99,35 @@ export default function TaskDetailModal({ task, users, teams, currentUser, onClo
                   <span className="text-xs font-medium text-slate-700">{u.name}</span>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Time Tracking */}
+        {(task.estimatedTime || task.actualTime) && (
+          <div>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Suivi du temps</p>
+            <div className="space-y-2">
+              {task.estimatedTime && (
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-slate-600">Temps estimé:</span>
+                  <span className="font-medium text-slate-700">{formatTimeWithUnit(task.estimatedTime, task.estimatedTimeUnit)}</span>
+                </div>
+              )}
+              {task.actualTime && (
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-slate-600">Temps réel:</span>
+                  <span className="font-medium text-slate-700">{formatTimeWithUnit(task.actualTime, task.actualTimeUnit)}</span>
+                </div>
+              )}
+              {task.estimatedTime && task.actualTime && (
+                <div className="flex justify-between items-center text-sm border-t border-slate-100 pt-2">
+                  <span className="text-slate-600">Ratio:</span>
+                  <span className={`font-medium ${getStatusColor(calculateRatio(task.estimatedTime, task.estimatedTimeUnit, task.actualTime, task.actualTimeUnit).status)}`}>
+                    {formatRatio(calculateRatio(task.estimatedTime, task.estimatedTimeUnit, task.actualTime, task.actualTimeUnit).ratio)} ({getStatusLabel(calculateRatio(task.estimatedTime, task.estimatedTimeUnit, task.actualTime, task.actualTimeUnit).status)})
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         )}

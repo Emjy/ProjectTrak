@@ -1,9 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import { Task, TaskStatus } from '@/types';
 import Badge from '@/components/ui/Badge';
 import Avatar from '@/components/ui/Avatar';
 import { useApp } from '@/context/AppContext';
+import ActualTimeModal from '@/components/tasks/ActualTimeModal';
+import { formatTimeWithUnit } from '@/lib/time';
 
 interface TaskItemProps {
   task: Task;
@@ -41,9 +44,29 @@ function formatDate(dateStr: string): string {
 export default function TaskItem({ task, onView, onEdit, onDelete }: TaskItemProps) {
   const { updateTask, users } = useApp();
   const assignees = (task.assigneeIds ?? []).map(id => users.find(u => u.id === id)).filter(Boolean) as typeof users;
+  const [showActualTimeModal, setShowActualTimeModal] = useState(false);
 
   const handleToggle = () => {
-    updateTask(task.id, { status: statusCycle[task.status] });
+    // If transitioning to 'done', show the actual time modal
+    if (statusCycle[task.status] === 'done') {
+      setShowActualTimeModal(true);
+    } else {
+      updateTask(task.id, { status: statusCycle[task.status] });
+    }
+  };
+
+  const handleActualTimeSave = (actualTime: number, actualTimeUnit: typeof task.actualTimeUnit) => {
+    setShowActualTimeModal(false);
+    updateTask(task.id, {
+      status: 'done',
+      actualTime,
+      actualTimeUnit,
+    });
+  };
+
+  const handleActualTimeSkip = () => {
+    setShowActualTimeModal(false);
+    updateTask(task.id, { status: 'done' });
   };
 
   const isDone = task.status === 'done';
@@ -70,6 +93,11 @@ export default function TaskItem({ task, onView, onEdit, onDelete }: TaskItemPro
       <div className="flex items-center gap-1.5 md:gap-2 flex-shrink-0">
         <Badge variant={task.priority} />
         <Badge variant={task.status} className="hidden sm:flex" />
+        {task.estimatedTime && (
+          <span className="text-xs text-slate-400 hidden md:inline">
+            {formatTimeWithUnit(task.estimatedTime, task.estimatedTimeUnit)}
+          </span>
+        )}
         {task.dueDate && (
           <span className={`text-xs ${isOverdue ? 'text-rose-500 font-medium' : 'text-slate-400'}`}>
             {formatDate(task.dueDate)}
@@ -109,6 +137,14 @@ export default function TaskItem({ task, onView, onEdit, onDelete }: TaskItemPro
           </div>
         )}
       </div>
+
+      {showActualTimeModal && (
+        <ActualTimeModal
+          taskTitle={task.title}
+          onSave={handleActualTimeSave}
+          onSkip={handleActualTimeSkip}
+        />
+      )}
     </div>
   );
 }

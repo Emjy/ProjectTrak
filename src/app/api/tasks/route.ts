@@ -3,6 +3,8 @@ import { db, tasks, taskAssignees } from '@/db';
 import { eq } from 'drizzle-orm';
 import { getSessionFromRequest } from '@/lib/session';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
   const session = getSessionFromRequest(req);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -19,6 +21,10 @@ export async function POST(req: NextRequest) {
       priority: body.priority ?? 'medium',
       teamId: body.teamId ?? null,
       dueDate: body.dueDate ?? null,
+      estimatedTime: body.estimatedTime ?? null,
+      estimatedTimeUnit: body.estimatedTimeUnit ?? null,
+      actualTime: body.actualTime ?? null,
+      actualTimeUnit: body.actualTimeUnit ?? null,
     }).run();
 
     // Insert assignees

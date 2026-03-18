@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Task, TaskStatus, TaskPriority } from '@/types';
+import { Task, TaskStatus, TaskPriority, TimeUnit } from '@/types';
 import { useApp } from '@/context/AppContext';
 import Avatar, { getInitials } from '@/components/ui/Avatar';
 
@@ -36,6 +36,10 @@ export default function TaskForm({ projectId, initial, onSubmit, onCancel, loadi
   const [priority, setPriority]       = useState<TaskPriority>(initial?.priority ?? 'medium');
   const [assigneeIds, setAssigneeIds] = useState<string[]>(initial?.assigneeIds ?? []);
   const [dueDate, setDueDate]         = useState(initial?.dueDate ?? '');
+  const [estimatedTime, setEstimatedTime] = useState(initial?.estimatedTime?.toString() ?? '');
+  const [estimatedTimeUnit, setEstimatedTimeUnit] = useState<TimeUnit>(initial?.estimatedTimeUnit ?? 'hours');
+  const [actualTime, setActualTime] = useState(initial?.actualTime?.toString() ?? '');
+  const [actualTimeUnit, setActualTimeUnit] = useState<TimeUnit>(initial?.actualTimeUnit ?? 'hours');
 
   const toggleAssignee = (uid: string) => {
     setAssigneeIds(prev =>
@@ -54,6 +58,10 @@ export default function TaskForm({ projectId, initial, onSubmit, onCancel, loadi
       priority,
       assigneeIds,
       dueDate: dueDate || undefined,
+      estimatedTime: estimatedTime ? parseInt(estimatedTime) : undefined,
+      estimatedTimeUnit: estimatedTime ? estimatedTimeUnit : undefined,
+      actualTime: actualTime ? parseInt(actualTime) : undefined,
+      actualTimeUnit: actualTime ? actualTimeUnit : undefined,
     });
   };
 
@@ -147,6 +155,48 @@ export default function TaskForm({ projectId, initial, onSubmit, onCancel, loadi
         <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)}
           className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
       </div>
+
+      <div className="grid grid-cols-3 gap-3">
+        <div className="col-span-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Temps estimé</label>
+          <input type="number" value={estimatedTime} onChange={e => setEstimatedTime(e.target.value)}
+            min="0" placeholder="Ex: 5"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+        <div className="col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Unité</label>
+          <select value={estimatedTimeUnit} onChange={e => setEstimatedTimeUnit(e.target.value as TimeUnit)} disabled={!estimatedTime}
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed">
+            <option value="minutes">Minutes</option>
+            <option value="hours">Heures</option>
+            <option value="days">Jours</option>
+            <option value="weeks">Semaines</option>
+            <option value="years">Années</option>
+          </select>
+        </div>
+      </div>
+
+      {initial?.id && (
+        <div className="grid grid-cols-3 gap-3">
+          <div className="col-span-1">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Temps réel</label>
+            <input type="number" value={actualTime} onChange={e => setActualTime(e.target.value)}
+              min="0" placeholder="Ex: 6"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Unité</label>
+            <select value={actualTimeUnit} onChange={e => setActualTimeUnit(e.target.value as TimeUnit)} disabled={!actualTime}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed">
+              <option value="minutes">Minutes</option>
+              <option value="hours">Heures</option>
+              <option value="days">Jours</option>
+              <option value="weeks">Semaines</option>
+              <option value="years">Années</option>
+            </select>
+          </div>
+        </div>
+      )}
 
       <div className="flex gap-3 justify-end pt-2 border-t border-gray-100">
         <button type="button" onClick={onCancel}

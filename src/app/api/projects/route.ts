@@ -4,11 +4,15 @@ import { eq } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
 import { getSessionFromRequest } from '@/lib/session';
 
+export const dynamic = 'force-dynamic';
+
 function mapTask(t: typeof tasks.$inferSelect, assigneeIds: string[]) {
   return {
     ...t,
     dueDate: t.dueDate ?? undefined,
     teamId: t.teamId ?? undefined,
+    estimatedTimeUnit: t.estimatedTimeUnit ?? undefined,
+    actualTimeUnit: t.actualTimeUnit ?? undefined,
     assigneeIds,
   };
 }
@@ -52,6 +56,8 @@ export async function POST(req: NextRequest) {
       status: body.status ?? 'active',
       color: body.color ?? '#6366f1',
       dueDate: body.dueDate ?? null,
+      estimatedTime: body.estimatedTime ?? null,
+      estimatedTimeUnit: body.estimatedTimeUnit ?? null,
       createdAt,
     }).run();
 
@@ -61,7 +67,13 @@ export async function POST(req: NextRequest) {
     }
 
     const project = db.select().from(projects).where(eq(projects.id, id)).get();
-    return NextResponse.json({ ...project, dueDate: project?.dueDate ?? undefined, teamIds, tasks: [] }, { status: 201 });
+    return NextResponse.json({
+      ...project,
+      dueDate: project?.dueDate ?? undefined,
+      estimatedTimeUnit: project?.estimatedTimeUnit ?? undefined,
+      teamIds,
+      tasks: []
+    }, { status: 201 });
   } catch {
     return NextResponse.json({ error: 'Failed to create project' }, { status: 500 });
   }

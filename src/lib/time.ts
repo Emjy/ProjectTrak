@@ -19,14 +19,14 @@ export function timeToMinutes(value: number, unit: TimeUnit): number {
  * E.g., 480 minutes → "8 hours"
  */
 export function formatTime(minutes: number): string {
-  if (minutes === 0) return '0 min';
+  if (minutes === 0) return '0m';
 
   const days = Math.floor(minutes / (60 * 8));
   const hours = Math.floor((minutes % (60 * 8)) / 60);
   const mins = minutes % 60;
 
   const parts: string[] = [];
-  if (days > 0) parts.push(`${days}d`);
+  if (days > 0) parts.push(`${days}j`);
   if (hours > 0) parts.push(`${hours}h`);
   if (mins > 0) parts.push(`${mins}m`);
 
@@ -35,19 +35,20 @@ export function formatTime(minutes: number): string {
 
 /**
  * Format time with unit as entered by user
- * E.g., (5, 'hours') → "5 hours"
+ * E.g., (5, 'hours') → "5 heures"
  */
 export function formatTimeWithUnit(value: number | undefined, unit: TimeUnit | undefined): string {
   if (!value || !unit) return '—';
 
-  const pluralUnit = value > 1 ?
-    (unit === 'minutes' ? 'minutes' :
-     unit === 'hours' ? 'hours' :
-     unit === 'days' ? 'days' :
-     unit === 'weeks' ? 'weeks' : 'years')
-    : unit;
-
-  return `${value} ${pluralUnit}`;
+  const labels: Record<TimeUnit, [string, string]> = {
+    minutes: ['minute', 'minutes'],
+    hours:   ['heure',  'heures'],
+    days:    ['jour',   'jours'],
+    weeks:   ['semaine','semaines'],
+    years:   ['an',     'ans'],
+  };
+  const [singular, plural] = labels[unit];
+  return `${value} ${value > 1 ? plural : singular}`;
 }
 
 /**
@@ -94,7 +95,7 @@ export function calculateRatio(
  * E.g., 1.5 → "150%"
  */
 export function formatRatio(ratio: number | null): string {
-  if (ratio === null) return 'N/A';
+  if (ratio === null) return '—';
   return `${Math.round(ratio * 100)}%`;
 }
 

@@ -9,7 +9,7 @@ import ChangePasswordModal from "@/components/ui/ChangePasswordModal";
 
 const navItems = [
   {
-    label: "Dashboard", href: "/",
+    label: "Tableau de bord", href: "/",
     icon: (
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" />

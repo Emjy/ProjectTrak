@@ -28,15 +28,15 @@ const variantStyles: Record<BadgeVariant, string> = {
 };
 
 const variantLabels: Record<BadgeVariant, string> = {
-  active: "Active",
-  completed: "Completed",
-  "on-hold": "On Hold",
-  todo: "To Do",
-  "in-progress": "In Progress",
-  done: "Done",
-  low: "Low",
-  medium: "Medium",
-  high: "High",
+  active: "Actif",
+  completed: "Terminé",
+  "on-hold": "En pause",
+  todo: "À faire",
+  "in-progress": "En cours",
+  done: "Terminé",
+  low: "Basse",
+  medium: "Moyenne",
+  high: "Haute",
 };
 
 export default function Badge({ variant, className = "" }: BadgeProps) {

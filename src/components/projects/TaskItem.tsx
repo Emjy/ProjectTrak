@@ -6,7 +6,7 @@ import Badge from '@/components/ui/Badge';
 import Avatar from '@/components/ui/Avatar';
 import { useApp } from '@/context/AppContext';
 import ActualTimeModal from '@/components/tasks/ActualTimeModal';
-import { formatTimeWithUnit } from '@/lib/time';
+import { formatTimeWithUnit, calculateRatio, getStatusLabel } from '@/lib/time';
 
 interface TaskItemProps {
   task: Task;
@@ -72,9 +72,15 @@ export default function TaskItem({ task, onView, onEdit, onDelete }: TaskItemPro
   const isDone = task.status === 'done';
   const isOverdue = task.status !== 'done' && task.dueDate && new Date(task.dueDate) < new Date();
 
+  const hasTimeTracking = !!task.estimatedTime;
+  const { status: timeStatus } = hasTimeTracking && task.actualTime
+    ? calculateRatio(task.estimatedTime, task.estimatedTimeUnit, task.actualTime, task.actualTimeUnit)
+    : { status: 'on-track' as const };
+  const timeStatusColors = { ahead: 'bg-emerald-50 text-emerald-700', 'on-track': 'bg-sky-50 text-sky-700', behind: 'bg-rose-50 text-rose-700' };
+
   return (
-    <div className={`flex items-center gap-3 p-3 rounded-xl border transition-all duration-150 group ${isDone ? 'bg-slate-50 border-slate-100' : 'bg-white border-slate-100 hover:border-slate-200 hover:shadow-sm'}`}>
-      <button onClick={handleToggle} className="flex-shrink-0 focus:outline-none" title={`Passer à: ${statusCycle[task.status]}`}>
+    <div className={`flex items-start gap-3 p-3 rounded-xl border transition-all duration-150 group ${isDone ? 'bg-slate-50 border-slate-100' : 'bg-white border-slate-100 hover:border-slate-200 hover:shadow-sm'}`}>
+      <button onClick={handleToggle} className="flex-shrink-0 mt-0.5 focus:outline-none" title={`Passer à: ${statusCycle[task.status]}`}>
         <CircleIcon checked={isDone} />
       </button>
 
@@ -88,16 +94,26 @@ export default function TaskItem({ task, onView, onEdit, onDelete }: TaskItemPro
         {task.description && (
           <p className="text-xs text-slate-400 mt-0.5 truncate">{task.description}</p>
         )}
+        {hasTimeTracking && (
+          <div className="flex items-center gap-2 mt-1.5">
+            <span className="text-[11px] text-slate-400">
+              ⏱ {formatTimeWithUnit(task.estimatedTime, task.estimatedTimeUnit)}
+              {task.actualTime && (
+                <> → <span className="text-slate-600 font-medium">{formatTimeWithUnit(task.actualTime, task.actualTimeUnit)}</span></>
+              )}
+            </span>
+            {task.actualTime && (
+              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${timeStatusColors[timeStatus]}`}>
+                {getStatusLabel(timeStatus)}
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-1.5 md:gap-2 flex-shrink-0">
         <Badge variant={task.priority} />
         <Badge variant={task.status} className="hidden sm:flex" />
-        {task.estimatedTime && (
-          <span className="text-xs text-slate-400 hidden md:inline">
-            {formatTimeWithUnit(task.estimatedTime, task.estimatedTimeUnit)}
-          </span>
-        )}
         {task.dueDate && (
           <span className={`text-xs ${isOverdue ? 'text-rose-500 font-medium' : 'text-slate-400'}`}>
             {formatDate(task.dueDate)}

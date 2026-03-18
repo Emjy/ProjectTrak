@@ -5,7 +5,7 @@ import { useApp } from '@/context/AppContext';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import ProgressBar from '@/components/ui/ProgressBar';
-import TimeMetricsCard from '@/components/dashboard/TimeMetricsCard';
+import { formatTimeWithUnit, calculateRatio, getStatusLabel, timeToMinutes } from '@/lib/time';
 
 function StatCard({ label, value, icon, color, sublabel }: { label: string; value: number; icon: React.ReactNode; color: string; sublabel?: string }) {
   return (
@@ -114,6 +114,16 @@ export default function DashboardPage() {
                 const tasks = project.tasks ?? [];
                 const done = tasks.filter((t) => t.status === 'done').length;
                 const progress = tasks.length > 0 ? Math.round((done / tasks.length) * 100) : 0;
+                const totalActualMinutes = tasks.reduce((sum, t) => {
+                  if (t.status === 'done' && t.actualTime && t.actualTimeUnit)
+                    return sum + timeToMinutes(t.actualTime, t.actualTimeUnit);
+                  return sum;
+                }, 0);
+                const hasEstimate = !!project.estimatedTime && !!project.estimatedTimeUnit;
+                const { status: timeStatus } = hasEstimate && totalActualMinutes > 0
+                  ? calculateRatio(project.estimatedTime, project.estimatedTimeUnit, totalActualMinutes || undefined, 'minutes')
+                  : { status: 'on-track' as const };
+                const timeStatusColors = { ahead: 'bg-emerald-50 text-emerald-700', 'on-track': 'bg-sky-50 text-sky-700', behind: 'bg-rose-50 text-rose-700' };
                 return (
                   <Link
                     key={project.id}
@@ -123,7 +133,14 @@ export default function DashboardPage() {
                     <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: project.color }} />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-slate-800 truncate">{project.name}</p>
-                      <p className="text-xs text-slate-400 truncate mt-0.5">{project.description}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <p className="text-xs text-slate-400 truncate">{project.description}</p>
+                        {hasEstimate && (
+                          <span className="text-[10px] text-slate-400 flex-shrink-0 hidden sm:inline">
+                            ⏱ {formatTimeWithUnit(project.estimatedTime, project.estimatedTimeUnit)}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="w-32 hidden sm:block">
                       <ProgressBar value={progress} color={project.color} showLabel />
@@ -131,6 +148,11 @@ export default function DashboardPage() {
                     <div className="text-xs text-slate-500 w-20 text-right hidden md:block">
                       {done}/{tasks.length} tâches
                     </div>
+                    {hasEstimate && totalActualMinutes > 0 ? (
+                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0 hidden lg:inline ${timeStatusColors[timeStatus]}`}>
+                        {getStatusLabel(timeStatus)}
+                      </span>
+                    ) : <span className="w-16 hidden lg:block" />}
                     <Badge variant={project.status} />
                     {project.dueDate && (
                       <div className="text-xs text-slate-400 w-28 text-right hidden lg:block">
@@ -144,23 +166,6 @@ export default function DashboardPage() {
           </Card>
         )}
       </div>
-
-      {/* Time Metrics */}
-      {projects.some((p) => p.estimatedTime) && (
-        <div>
-          <div className="mb-5">
-            <h2 className="text-base font-semibold text-slate-900">Métriques de temps</h2>
-            <p className="text-sm text-slate-500 mt-0.5">Estimé vs réel par projet</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {projects
-              .filter((p) => p.estimatedTime)
-              .map((project) => (
-                <TimeMetricsCard key={project.id} project={project} />
-              ))}
-          </div>
-        </div>
-      )}
 
       {/* Task summary */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

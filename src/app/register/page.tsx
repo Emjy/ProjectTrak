@@ -84,7 +84,7 @@ export default function RegisterPage() {
             <label className="block text-xs font-medium text-slate-700 mb-1">Nom de l&apos;organisation</label>
             <input
               type="text" required value={orgName} onChange={e => setOrgName(e.target.value)}
-              placeholder="My Agency"
+              placeholder="Mon Agence"
               className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400"
             />
           </div>
@@ -100,7 +100,7 @@ export default function RegisterPage() {
             <label className="block text-xs font-medium text-slate-700 mb-1">Email</label>
             <input
               type="email" required value={email} onChange={e => setEmail(e.target.value)}
-              placeholder="alice@my-agency.com"
+              placeholder="alice@mon-agence.fr"
               className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400"
             />
           </div>

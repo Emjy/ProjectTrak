@@ -5,6 +5,7 @@ import { ProjectWithTasks } from '@/types';
 import Badge from '@/components/ui/Badge';
 import ProgressBar from '@/components/ui/ProgressBar';
 import Card from '@/components/ui/Card';
+import { formatTimeWithUnit, formatTime, calculateRatio, getStatusLabel, timeToMinutes } from '@/lib/time';
 
 interface ProjectCardProps {
   project: ProjectWithTasks;
@@ -41,6 +42,20 @@ export default function ProjectCard({ project, onEdit, onDelete }: ProjectCardPr
   const doneTasks = tasks.filter((t) => t.status === 'done').length;
   const progress = tasks.length > 0 ? Math.round((doneTasks / tasks.length) * 100) : 0;
   const isOverdue = project.status !== 'completed' && project.dueDate && new Date(project.dueDate) < new Date();
+
+  // Time tracking
+  const totalActualMinutes = tasks.reduce((sum, t) => {
+    if (t.status === 'done' && t.actualTime && t.actualTimeUnit)
+      return sum + timeToMinutes(t.actualTime, t.actualTimeUnit);
+    return sum;
+  }, 0);
+  const hasEstimate = !!project.estimatedTime && !!project.estimatedTimeUnit;
+  const estimatedMinutes = hasEstimate ? timeToMinutes(project.estimatedTime!, project.estimatedTimeUnit!) : 0;
+  const timeUsagePct = hasEstimate && estimatedMinutes > 0 ? Math.min(Math.round((totalActualMinutes / estimatedMinutes) * 100), 150) : 0;
+  const { status: timeStatus } = hasEstimate
+    ? calculateRatio(project.estimatedTime, project.estimatedTimeUnit, totalActualMinutes || undefined, totalActualMinutes ? 'minutes' : undefined)
+    : { status: 'on-track' as const };
+  const timeStatusColors = { ahead: 'bg-emerald-50 text-emerald-700', 'on-track': 'bg-sky-50 text-sky-700', behind: 'bg-rose-50 text-rose-700' };
 
   return (
     <Card hoverable className="p-5 flex flex-col gap-4 group/card">
@@ -87,6 +102,30 @@ export default function ProjectCard({ project, onEdit, onDelete }: ProjectCardPr
             <span className="text-xs font-semibold text-slate-700 tabular-nums">{progress}%</span>
           </div>
           <ProgressBar value={progress} color={project.color} />
+
+          {hasEstimate && (
+            <div className="mt-3 pt-3 border-t border-slate-50 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 text-xs text-slate-500 min-w-0">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 text-slate-400">
+                  <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+                </svg>
+                <span className="font-medium text-slate-700">{formatTimeWithUnit(project.estimatedTime, project.estimatedTimeUnit)}</span>
+                {totalActualMinutes > 0 && (
+                  <>
+                    <span className="text-slate-300">→</span>
+                    <span className={`font-medium ${timeStatus === 'ahead' ? 'text-emerald-600' : timeStatus === 'behind' ? 'text-rose-600' : 'text-sky-600'}`}>
+                      {formatTime(totalActualMinutes)}
+                    </span>
+                  </>
+                )}
+              </div>
+              {totalActualMinutes > 0 && (
+                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0 ${timeStatusColors[timeStatus]}`}>
+                  {getStatusLabel(timeStatus)}
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="flex items-center justify-between pt-3 mt-1 border-t border-slate-50">

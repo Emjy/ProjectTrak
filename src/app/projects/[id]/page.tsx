@@ -15,6 +15,7 @@ import TaskForm from '@/components/tasks/TaskForm';
 import TaskDetailModal from '@/components/tasks/TaskDetailModal';
 import { Project, Task, TaskStatus } from '@/types';
 import { useRouter } from 'next/navigation';
+import { formatTimeWithUnit, formatTime, calculateRatio, getStatusLabel, timeToMinutes } from '@/lib/time';
 import KanbanBoard from '@/components/projects/KanbanBoard';
 
 function BackIcon() {
@@ -73,6 +74,17 @@ export default function ProjectDetailPage() {
   const doneTasks = tasks.filter((t) => t.status === 'done').length;
   const progress = tasks.length > 0 ? Math.round((doneTasks / tasks.length) * 100) : 0;
   const isOverdue = project.status !== 'completed' && project.dueDate && new Date(project.dueDate) < new Date();
+
+  const hasEstimate = !!project.estimatedTime && !!project.estimatedTimeUnit;
+  const totalActualMinutes = tasks.reduce((sum, t) => {
+    if (t.status === 'done' && t.actualTime && t.actualTimeUnit)
+      return sum + timeToMinutes(t.actualTime, t.actualTimeUnit);
+    return sum;
+  }, 0);
+  const { status: timeStatus } = hasEstimate && totalActualMinutes > 0
+    ? calculateRatio(project.estimatedTime, project.estimatedTimeUnit, totalActualMinutes, 'minutes')
+    : { status: 'on-track' as const };
+  const timeStatusColors = { ahead: 'bg-emerald-50 text-emerald-700 ring-emerald-200', 'on-track': 'bg-sky-50 text-sky-700 ring-sky-200', behind: 'bg-rose-50 text-rose-700 ring-rose-200' };
 
   const handleEditProject = async (data: Omit<Project, 'id' | 'createdAt'>) => {
     setSaving(true);
@@ -189,6 +201,30 @@ export default function ProjectDetailPage() {
             <span>{doneTasks} tâches terminées</span>
             <span>{tasks.length - doneTasks} restantes</span>
           </div>
+
+          {hasEstimate && (
+            <div className="mt-3 pt-3 border-t border-slate-50 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 text-xs text-slate-500 min-w-0">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 text-slate-400">
+                  <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+                </svg>
+                <span className="font-medium text-slate-700">{formatTimeWithUnit(project.estimatedTime, project.estimatedTimeUnit)}</span>
+                {totalActualMinutes > 0 && (
+                  <>
+                    <span className="text-slate-300">→</span>
+                    <span className={`font-medium ${timeStatus === 'ahead' ? 'text-emerald-600' : timeStatus === 'behind' ? 'text-rose-600' : 'text-sky-600'}`}>
+                      {formatTime(totalActualMinutes)}
+                    </span>
+                  </>
+                )}
+              </div>
+              {totalActualMinutes > 0 && (
+                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0 ${timeStatusColors[timeStatus]}`}>
+                  {getStatusLabel(timeStatus)}
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-3 gap-4 mt-5 pt-5 border-t border-slate-100">

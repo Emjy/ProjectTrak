@@ -176,7 +176,7 @@ export default function TaskForm({ projectId, initial, onSubmit, onCancel, loadi
         </div>
       </div>
 
-      {initial?.id && (
+      {initial?.id && (status === 'done' || !!initial?.actualTime) && (
         <div className="grid grid-cols-3 gap-3">
           <div className="col-span-1">
             <label className="block text-sm font-medium text-gray-700 mb-1">Temps réel</label>

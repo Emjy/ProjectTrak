@@ -83,3 +83,16 @@ export const taskAssignees = sqliteTable('task_assignees', {
   taskId: text('task_id').notNull().references(() => tasks.id, { onDelete: 'cascade' }),
   userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
 });
+
+export const timeEntries = sqliteTable('time_entries', {
+  id: text('id').primaryKey(),
+  orgId: text('org_id').notNull().references(() => organizations.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  taskId: text('task_id').notNull().references(() => tasks.id, { onDelete: 'cascade' }),
+  projectId: text('project_id').notNull().references(() => projects.id, { onDelete: 'cascade' }),
+  duration: integer('duration').notNull(),
+  unit: text('unit', { enum: ['minutes', 'hours', 'days'] }).notNull(),
+  date: text('date').notNull(),
+  note: text('note'),
+  createdAt: text('created_at').notNull(),
+});

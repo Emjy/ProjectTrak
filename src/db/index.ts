@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
-import { organizations, projects, tasks, users, teams, teamMembers, taskAssignees, taskComments, projectTeams } from './schema';
+import { organizations, projects, tasks, users, teams, teamMembers, taskAssignees, taskComments, projectTeams, timeEntries } from './schema';
 import { eq } from 'drizzle-orm';
 import path from 'path';
 
@@ -86,6 +86,19 @@ sqlite.exec(`
     task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
     author_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     content TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS time_entries (
+    id TEXT PRIMARY KEY,
+    org_id TEXT NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    duration INTEGER NOT NULL,
+    unit TEXT NOT NULL,
+    date TEXT NOT NULL,
+    note TEXT,
     created_at TEXT NOT NULL
   );
 `);
@@ -206,4 +219,4 @@ if (!seedOrgExists) {
   }
 }
 
-export { organizations, projects, tasks, users, teams, teamMembers, taskAssignees, taskComments, projectTeams, eq };
+export { organizations, projects, tasks, users, teams, teamMembers, taskAssignees, taskComments, projectTeams, timeEntries, eq };

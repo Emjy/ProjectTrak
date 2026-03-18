@@ -4,6 +4,7 @@ export type TaskPriority = "low" | "medium" | "high";
 export type UserRole = "admin" | "member";
 export type TeamMemberRole = "owner" | "member";
 export type TimeUnit = "minutes" | "hours" | "days" | "weeks" | "years";
+export type TimeEntryUnit = "minutes" | "hours" | "days";
 
 export interface Project {
   id: string;
@@ -86,6 +87,23 @@ export interface TaskComment {
   author?: User;
 }
 
+export interface TimeEntry {
+  id: string;
+  orgId: string;
+  userId: string;
+  taskId: string;
+  projectId: string;
+  duration: number;
+  unit: TimeEntryUnit;
+  date: string;
+  note?: string;
+  createdAt: string;
+  user?: User;
+  taskTitle?: string;
+  projectName?: string;
+  projectColor?: string;
+}
+
 export interface ProjectWithTasks extends Project {
   tasks: Task[];
 }
@@ -112,4 +130,6 @@ export interface AppContextType {
   deleteTeam: (id: string) => Promise<void>;
   addTeamMember: (teamId: string, userId: string, role?: TeamMemberRole) => Promise<void>;
   removeTeamMember: (teamId: string, userId: string) => Promise<void>;
+  addTimeEntry: (data: { taskId: string; projectId: string; duration: number; unit: TimeEntryUnit; date: string; note?: string }) => Promise<TimeEntry>;
+  deleteTimeEntry: (id: string) => Promise<void>;
 }

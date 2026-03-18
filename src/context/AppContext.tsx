@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { AppContextType, Project, ProjectWithTasks, Task, User, Team, TeamMemberRole } from '@/types';
+import { AppContextType, Project, ProjectWithTasks, Task, User, Team, TeamMemberRole, TimeEntry, TimeEntryUnit } from '@/types';
 
 const AppContext = createContext<AppContextType | null>(null);
 
@@ -136,8 +136,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setTeams(prev => prev.map(t => t.id === teamId ? { ...t, members: (t.members ?? []).filter(m => m.userId !== userId) } : t));
   }, []);
 
+  // — Time Entries —
+  const addTimeEntry = useCallback(async (data: { taskId: string; projectId: string; duration: number; unit: TimeEntryUnit; date: string; note?: string }): Promise<TimeEntry> => {
+    const res = await fetch('/api/time-entries', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+    return res.json();
+  }, []);
+
+  const deleteTimeEntry = useCallback(async (id: string) => {
+    await fetch(`/api/time-entries/${id}`, { method: 'DELETE' });
+  }, []);
+
   return (
-    <AppContext.Provider value={{ projects, users, teams, currentUser, loading, refreshProjects, addProject, updateProject, deleteProject, addTask, updateTask, deleteTask, getProjectById, addUser, updateUser, deleteUser, addTeam, updateTeam, deleteTeam, addTeamMember, removeTeamMember }}>
+    <AppContext.Provider value={{ projects, users, teams, currentUser, loading, refreshProjects, addProject, updateProject, deleteProject, addTask, updateTask, deleteTask, getProjectById, addUser, updateUser, deleteUser, addTeam, updateTeam, deleteTeam, addTeamMember, removeTeamMember, addTimeEntry, deleteTimeEntry }}>
       {children}
     </AppContext.Provider>
   );

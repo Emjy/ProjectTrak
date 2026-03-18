@@ -5,7 +5,9 @@ import { useApp } from '@/context/AppContext';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import ProgressBar from '@/components/ui/ProgressBar';
-import { formatTimeWithUnit, calculateRatio, getStatusLabel, timeToMinutes } from '@/lib/time';
+import { formatTimeWithUnit, calculateRatio, getStatusLabel, timeToMinutes, formatTime } from '@/lib/time';
+import { useState, useEffect } from 'react';
+import { TimeEntry } from '@/types';
 
 function StatCard({ label, value, icon, color, sublabel }: { label: string; value: number; icon: React.ReactNode; color: string; sublabel?: string }) {
   return (
@@ -26,8 +28,29 @@ function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString('fr-FR', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+function getWeekRange() {
+  const now = new Date();
+  const day = now.getDay();
+  const diff = (day === 0 ? -6 : 1) - day;
+  const mon = new Date(now);
+  mon.setDate(now.getDate() + diff);
+  const sun = new Date(mon);
+  sun.setDate(mon.getDate() + 6);
+  return { from: mon.toISOString().split('T')[0], to: sun.toISOString().split('T')[0] };
+}
+
 export default function DashboardPage() {
-  const { projects, loading } = useApp();
+  const { projects, loading, currentUser } = useApp();
+  const [myEntries, setMyEntries] = useState<TimeEntry[]>([]);
+
+  useEffect(() => {
+    if (!currentUser) return;
+    const { from, to } = getWeekRange();
+    fetch(`/api/time-entries?from=${from}&to=${to}`)
+      .then(r => r.json())
+      .then(data => setMyEntries(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, [currentUser]);
 
   const allTasks = projects.flatMap((p) => p.tasks ?? []);
   const totalProjects = projects.length;
@@ -226,6 +249,43 @@ export default function DashboardPage() {
           )}
         </Card>
       </div>
+
+      {/* Mon temps cette semaine */}
+      {myEntries.length > 0 && (() => {
+        const totalMins = myEntries.reduce((s, e) => s + timeToMinutes(e.duration, e.unit as Parameters<typeof timeToMinutes>[1]), 0);
+        const byProject = new Map<string, { name: string; color: string; minutes: number }>();
+        for (const e of myEntries) {
+          if (!byProject.has(e.projectId)) byProject.set(e.projectId, { name: e.projectName ?? e.projectId, color: e.projectColor ?? '#6366f1', minutes: 0 });
+          byProject.get(e.projectId)!.minutes += timeToMinutes(e.duration, e.unit as Parameters<typeof timeToMinutes>[1]);
+        }
+        const sorted = [...byProject.values()].sort((a, b) => b.minutes - a.minutes);
+        return (
+          <Card className="p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-slate-900">Mon temps cette semaine</h3>
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-bold text-indigo-600 tabular-nums">{formatTime(totalMins)}</span>
+                <Link href="/reports" className="text-xs text-slate-400 hover:text-indigo-600 transition-colors">Voir tout →</Link>
+              </div>
+            </div>
+            <div className="space-y-2.5">
+              {sorted.slice(0, 4).map(p => {
+                const pct = Math.round((p.minutes / totalMins) * 100);
+                return (
+                  <div key={p.name} className="flex items-center gap-3">
+                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: p.color }} />
+                    <span className="text-xs text-slate-600 w-36 truncate flex-shrink-0">{p.name}</span>
+                    <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: p.color }} />
+                    </div>
+                    <span className="text-xs font-semibold text-slate-700 tabular-nums w-12 text-right flex-shrink-0">{formatTime(p.minutes)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+        );
+      })()}
     </div>
   );
 }

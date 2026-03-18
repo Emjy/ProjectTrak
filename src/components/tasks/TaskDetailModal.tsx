@@ -1,11 +1,15 @@
 'use client';
 
-import { Task, User, Team } from '@/types';
+import { useState, useEffect } from 'react';
+import { Task, User, Team, TimeEntry, TimeEntryUnit } from '@/types';
 import Modal from '@/components/ui/Modal';
 import Badge from '@/components/ui/Badge';
 import Avatar from '@/components/ui/Avatar';
 import TaskComments from './TaskComments';
-import { formatTimeWithUnit, calculateRatio, formatRatio, getStatusColor, getStatusLabel } from '@/lib/time';
+import TimeEntryForm from './TimeEntryForm';
+import TimeEntryList from './TimeEntryList';
+import { formatTimeWithUnit, timeToMinutes, formatTime } from '@/lib/time';
+import { useApp } from '@/context/AppContext';
 
 interface TaskDetailModalProps {
   task: Task | null;
@@ -33,19 +37,51 @@ function formatDate(dateStr: string): string {
 }
 
 export default function TaskDetailModal({ task, users, teams, currentUser, onClose, onEdit, onDelete }: TaskDetailModalProps) {
+  const { addTimeEntry, deleteTimeEntry } = useApp();
+  const [entries, setEntries] = useState<TimeEntry[]>([]);
+  const [showForm, setShowForm] = useState(false);
+  const [loadingEntry, setLoadingEntry] = useState(false);
+
+  useEffect(() => {
+    if (!task) return;
+    fetch(`/api/time-entries?taskId=${task.id}`)
+      .then(r => r.json())
+      .then(data => setEntries(Array.isArray(data) ? data : []))
+      .catch(() => setEntries([]));
+    setShowForm(false);
+  }, [task?.id]);
+
   if (!task) return null;
 
   const assignees = (task.assigneeIds ?? []).map(id => users.find(u => u.id === id)).filter(Boolean) as User[];
   const team = task.teamId ? teams.find(t => t.id === task.teamId) : null;
   const isOverdue = task.status !== 'done' && task.dueDate && new Date(task.dueDate) < new Date();
 
-  // Users that can be @mentioned: task assignees + team members + current user
   const mentionableIds = new Set<string>([
     currentUser.id,
     ...assignees.map(u => u.id),
     ...(team?.members ?? []).map(m => m.userId),
   ]);
   const mentionableUsers = users.filter(u => mentionableIds.has(u.id));
+  const canLogTime = currentUser.role === 'admin' || (task.assigneeIds ?? []).includes(currentUser.id);
+
+  const totalLoggedMinutes = entries.reduce((sum, e) => sum + timeToMinutes(e.duration, e.unit as Parameters<typeof timeToMinutes>[1]), 0);
+
+  const handleSaveEntry = async (data: { duration: number; unit: TimeEntryUnit; date: string; note?: string }) => {
+    setLoadingEntry(true);
+    try {
+      const entry = await addTimeEntry({ taskId: task.id, projectId: task.projectId, ...data });
+      setEntries(prev => [entry, ...prev]);
+      setShowForm(false);
+    } finally {
+      setLoadingEntry(false);
+    }
+  };
+
+  const handleDeleteEntry = async (id: string) => {
+    await deleteTimeEntry(id);
+    setEntries(prev => prev.filter(e => e.id !== id));
+  };
 
   return (
     <Modal isOpen={!!task} onClose={onClose} title={task.title} size="lg">
@@ -103,34 +139,55 @@ export default function TaskDetailModal({ task, users, teams, currentUser, onClo
           </div>
         )}
 
-        {/* Time Tracking */}
-        {(task.estimatedTime || task.actualTime) && (
-          <div>
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Suivi du temps</p>
-            <div className="space-y-2">
-              {task.estimatedTime && (
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-slate-600">Temps estimé:</span>
-                  <span className="font-medium text-slate-700">{formatTimeWithUnit(task.estimatedTime, task.estimatedTimeUnit)}</span>
-                </div>
-              )}
-              {task.actualTime && (
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-slate-600">Temps réel:</span>
-                  <span className="font-medium text-slate-700">{formatTimeWithUnit(task.actualTime, task.actualTimeUnit)}</span>
-                </div>
-              )}
-              {task.estimatedTime && task.actualTime && (
-                <div className="flex justify-between items-center text-sm border-t border-slate-100 pt-2">
-                  <span className="text-slate-600">Ratio:</span>
-                  <span className={`font-medium ${getStatusColor(calculateRatio(task.estimatedTime, task.estimatedTimeUnit, task.actualTime, task.actualTimeUnit).status)}`}>
-                    {formatRatio(calculateRatio(task.estimatedTime, task.estimatedTimeUnit, task.actualTime, task.actualTimeUnit).ratio)} ({getStatusLabel(calculateRatio(task.estimatedTime, task.estimatedTimeUnit, task.actualTime, task.actualTimeUnit).status)})
-                  </span>
-                </div>
-              )}
-            </div>
+        {/* Estimated time */}
+        {task.estimatedTime && (
+          <div className="flex items-center gap-2 text-sm text-slate-500">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400">
+              <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+            </svg>
+            <span>Estimé :</span>
+            <span className="font-medium text-slate-700">{formatTimeWithUnit(task.estimatedTime, task.estimatedTimeUnit)}</span>
           </div>
         )}
+
+        {/* Time entries */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+              Temps saisi
+              {totalLoggedMinutes > 0 && (
+                <span className="ml-2 normal-case font-normal text-indigo-600">
+                  {formatTime(totalLoggedMinutes)} total
+                </span>
+              )}
+            </p>
+            {!showForm && canLogTime && (
+              <button
+                onClick={() => setShowForm(true)}
+                className="flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
+              >
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="16" /><line x1="8" y1="12" x2="16" y2="12" />
+                </svg>
+                Saisir mon temps
+              </button>
+            )}
+          </div>
+
+          {showForm && (
+            <div className="bg-slate-50 rounded-lg p-3 mb-3 border border-slate-200">
+              <TimeEntryForm
+                taskId={task.id}
+                projectId={task.projectId}
+                onSave={handleSaveEntry}
+                onCancel={() => setShowForm(false)}
+                loading={loadingEntry}
+              />
+            </div>
+          )}
+
+          <TimeEntryList entries={entries} onDelete={handleDeleteEntry} />
+        </div>
 
         {/* Actions */}
         <div className="flex items-center gap-2 pt-1 border-t border-slate-100">

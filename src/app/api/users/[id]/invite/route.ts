@@ -4,6 +4,8 @@ import { eq } from 'drizzle-orm';
 import { getSessionFromRequest } from '@/lib/session';
 import { randomBytes } from 'crypto';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = getSessionFromRequest(_req);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

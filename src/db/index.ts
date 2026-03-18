@@ -5,11 +5,11 @@ import { eq } from 'drizzle-orm';
 import path from 'path';
 
 const DB_PATH = process.env.DB_PATH ?? path.join(process.cwd(), 'projecttrak.db');
-const sqlite = new Database(DB_PATH);
+const sqlite = new Database(DB_PATH, { timeout: 60000 });
 
 sqlite.pragma('journal_mode = WAL');
 sqlite.pragma('foreign_keys = ON');
-sqlite.pragma('busy_timeout = 30000');
+sqlite.pragma('busy_timeout = 60000');
 
 export const db = drizzle(sqlite);
 

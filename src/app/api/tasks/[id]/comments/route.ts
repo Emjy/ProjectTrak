@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, taskComments, users, eq } from '@/db';
 import { randomUUID } from 'crypto';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: taskId } = await params;
   const rows = await db.select({

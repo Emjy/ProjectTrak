@@ -5,13 +5,28 @@ import { eq } from 'drizzle-orm';
 import path from 'path';
 
 const DB_PATH = process.env.DB_PATH ?? path.join(process.cwd(), 'projecttrak.db');
-const sqlite = new Database(DB_PATH, { timeout: 60000 });
 
-sqlite.pragma('journal_mode = WAL');
-sqlite.pragma('foreign_keys = ON');
-sqlite.pragma('busy_timeout = 60000');
+// During `next build`, Next.js spawns 3 parallel workers that all import this module
+// simultaneously. Running WAL-mode setup + migrations concurrently causes SQLITE_BUSY.
+// Using an in-memory DB during the build phase avoids the file-level lock contention;
+// the real DB is only opened at runtime.
+const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build';
+const sqlite = isBuildPhase
+  ? new Database(':memory:')
+  : new Database(DB_PATH, { timeout: 60000 });
+
+if (!isBuildPhase) {
+  sqlite.pragma('journal_mode = WAL');
+  sqlite.pragma('foreign_keys = ON');
+  sqlite.pragma('busy_timeout = 60000');
+}
 
 export const db = drizzle(sqlite);
+
+if (isBuildPhase) {
+  // Skip all DB initialization during build — tables/migrations/seed are not needed
+  // and running them in parallel across Next.js workers causes SQLITE_BUSY.
+} else {
 
 // Create all tables
 sqlite.exec(`
@@ -218,5 +233,7 @@ if (!seedOrgExists) {
     assigneeIds.forEach((uid, i) => ins.assignee.run(`ta_seed_${tid}_${i}`, tid, uid));
   }
 }
+
+} // end !isBuildPhase
 
 export { organizations, projects, tasks, users, teams, teamMembers, taskAssignees, taskComments, projectTeams, timeEntries, eq };

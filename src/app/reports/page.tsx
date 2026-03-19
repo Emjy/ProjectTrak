@@ -105,7 +105,7 @@ export default function ReportsPage() {
 
   // — Vue "Par employé" —
   const byPerson = () => {
-    const map = new Map<string, { user: TimeEntry['user'] & { id: string }; minutes: number; byProject: Map<string, { name: string; color: string; minutes: number }> }>();
+    const map = new Map<string, { user: { id: string; name: string; avatarColor: string }; minutes: number; byProject: Map<string, { name: string; color: string; minutes: number }> }>();
     for (const e of entries) {
       const uid = e.userId;
       if (!map.has(uid)) map.set(uid, { user: { id: uid, name: e.user?.name ?? '?', avatarColor: e.user?.avatarColor ?? '#6366f1' }, minutes: 0, byProject: new Map() });
